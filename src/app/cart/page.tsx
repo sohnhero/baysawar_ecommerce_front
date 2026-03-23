@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +9,13 @@ import { useCartStore } from "@/store/cart-store";
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, totalPrice } = useCartStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   if (items.length === 0) {
     return (
@@ -140,16 +148,18 @@ export default function CartPage() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted">Sous-total</span>
-                  <span>{total.toLocaleString()} FCFA</span>
+                  <span className="font-bold">{total.toLocaleString()} FCFA</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm items-center">
                   <span className="text-muted">Livraison</span>
-                  <span>{shipping.toLocaleString()} FCFA</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-green bg-brand-green/5 px-2 py-1 rounded-lg animate-pulse">
+                    Calculé au paiement
+                  </span>
                 </div>
-                <div className="border-t border-border-color pt-3 flex justify-between font-heading font-bold text-lg">
+                <div className="border-t border-border-color pt-4 flex justify-between font-heading font-black text-xl">
                   <span>Total</span>
                   <span className="text-brand-green">
-                    {(total + shipping).toLocaleString()} FCFA
+                    {total.toLocaleString()} FCFA
                   </span>
                 </div>
               </div>

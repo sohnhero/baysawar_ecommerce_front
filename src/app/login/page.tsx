@@ -5,36 +5,48 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore, UserRole } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, ShieldCheck, ArrowRight, ArrowLeft, Zap, Sparkles } from "lucide-react";
+import { Mail, Lock, User, ShieldCheck, ArrowRight, ArrowLeft, Zap, Sparkles, Loader2, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import { toast } from "react-toastify";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
-  const [role, setRole] = useState<UserRole>("client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login({
-      id: role === "admin" ? "admin-1" : "user-1",
-      name: role === "admin" ? "Admin Baysawarr" : "Amadou Diallo",
-      email,
-      role,
-    });
-    router.push(role === "admin" ? "/admin" : "/");
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await api.post<{ user: any; token: string }>("/auth/login", { email, password });
+      login(result.user, result.token);
+      toast.success(`Heureux de vous revoir, ${result.user.name.split(' ')[0]} !`);
+      router.push(result.user.role === "admin" ? "/admin" : "/");
+    } catch (err: any) {
+      const msg = err.message === "Invalid credentials" ? "Identifiants invalides" : err.message;
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+    <div className="h-screen bg-slate-50 flex overflow-hidden">
       {/* Visual Side (Hidden on Mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-brand-blue">
         <Image
           src="https://images.unsplash.com/photo-1544965850-6f8a66788f9b?q=80&w=1200&auto=format&fit=crop"
           alt="Baysawarr Craft"
           fill
-          className="object-cover opacity-60 mix-blend-overlay scale-110 hover:scale-100 transition-transform duration-[10s]"
+          className="object-cover opacity-60 mix-blend-overlay scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/80 via-brand-blue/40 to-transparent" />
         
@@ -82,40 +94,37 @@ export default function LoginPage() {
       </div>
 
       {/* Form Side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-20 mt-20 lg:mt-0">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-20 overflow-hidden">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-lg"
         >
           {/* Back link */}
-          <Link href="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue mb-12 transition-all group">
+          <Link href="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue mb-10 transition-all group">
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Retour à la boutique
           </Link>
 
-          <div className="mb-12">
+          <div className="mb-10">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">Connexion</h1>
-            <p className="text-slate-500 font-medium">Choisissez votre mode d&apos;accès pour continuer.</p>
+            <p className="text-slate-500 font-medium">Bon retour parmi nous ! Veuillez entrer vos identifiants.</p>
           </div>
 
-          {/* Role Toggle Switch */}
-          <div className="bg-slate-100 p-1.5 rounded-[24px] flex mb-10 border border-slate-200">
-            <button
-              onClick={() => setRole("client")}
-              className={`flex-1 py-4 px-6 rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all ${
-                role === "client" ? "bg-white text-brand-green shadow-xl shadow-black/5" : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              Espace Client
-            </button>
-            <button
-              onClick={() => setRole("admin")}
-              className={`flex-1 py-4 px-6 rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all ${
-                role === "admin" ? "bg-white text-brand-blue shadow-xl shadow-black/5" : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              Panel Admin
-            </button>
+          {/* Error Message Container (Fixed Height to prevent layout shift) */}
+          <div className="h-14 mb-4">
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-4 rounded-[20px] bg-red-50 border border-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-3"
+                >
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -137,50 +146,53 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Mot de Passe</label>
-                {role === "client" && (
-                  <Link href="#" className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline">Oublié ?</Link>
-                )}
+                <Link href="#" className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline">Oublié ?</Link>
               </div>
               <div className="relative group">
                 <Lock size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-blue transition-colors" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-16 pr-8 py-5 rounded-[28px] bg-white border border-slate-200 focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 transition-all font-bold text-slate-900"
+                  className="w-full pl-16 pr-14 py-5 rounded-[28px] bg-white border border-slate-200 focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 transition-all font-bold text-slate-900"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
-              className={`w-full py-6 rounded-[32px] text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-2xl flex items-center justify-center gap-3 overflow-hidden relative group ${
-                role === "admin" 
-                ? "bg-brand-blue shadow-brand-blue/30" 
-                : "bg-brand-green shadow-brand-green/30"
-              }`}
+              className="w-full py-6 rounded-[32px] text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all bg-brand-green shadow-xl shadow-brand-green/30 hover:shadow-brand-green/40 flex items-center justify-center gap-3 overflow-hidden relative group"
             >
               <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12" />
-              {role === "admin" ? <ShieldCheck size={18} /> : <Zap size={18} />}
-              Se Connecter
+              {loading ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Zap size={18} />
+              )}
+              {loading ? "Chargement..." : "Se Connecter"}
             </button>
           </form>
 
-          {role === "client" && (
-            <div className="mt-12 text-center">
-              <p className="text-sm font-medium text-slate-500">
-                Pas encore membre ?{" "}
-                <Link
-                  href="/register"
-                  className="text-brand-green font-black hover:underline inline-flex items-center gap-1 group"
-                >
-                  Créer un compte <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </p>
-            </div>
-          )}
+          <div className="mt-10 text-center">
+            <p className="text-sm font-medium text-slate-500">
+              Pas encore membre ?{" "}
+              <Link
+                href="/register"
+                className="text-brand-green font-black hover:underline inline-flex items-center gap-1 group"
+              >
+                Créer un compte <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </p>
+          </div>
         </motion.div>
       </div>
     </div>

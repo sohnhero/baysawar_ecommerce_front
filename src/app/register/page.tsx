@@ -4,22 +4,41 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, Phone, ArrowLeft, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, Phone, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import { toast } from "react-toastify";
+import { AnimatePresence } from "framer-motion";
+import { api } from "@/lib/api";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/login");
+    setLoading(true);
+    setError("");
+
+    try {
+      await api.post("/auth/register", { name, email, password });
+      toast.success("Compte créé avec succès ! Veuillez vous connecter.");
+      router.push("/login?registered=true");
+    } catch (err: any) {
+      const msg = err.message === "User already exists" ? "Cet utilisateur existe déjà" : err.message;
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+    <div className="h-screen bg-slate-50 flex overflow-hidden">
       {/* Visual Side (Hidden on Mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-brand-green">
         <Image
@@ -73,81 +92,104 @@ export default function RegisterPage() {
       </div>
 
       {/* Form Side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-20 mt-20 lg:mt-0 overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:px-20 overflow-y-auto h-full scrollbar-none">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-lg"
         >
           {/* Back link */}
-          <Link href="/login" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-green mb-12 transition-all group">
+          <Link href="/login" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-green mb-8 transition-all group">
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Retour à la connexion
           </Link>
 
-          <div className="mb-10">
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">Créer un compte</h1>
-            <p className="text-slate-500 font-medium">Rejoignez-nous en quelques secondes.</p>
+          <div className="mb-8">
+            <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-2">Créer un compte</h1>
+            <p className="text-slate-500 font-medium text-sm">Rejoignez-nous en quelques secondes.</p>
           </div>
 
-          <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2 space-y-2">
+          <div className="h-14 mb-4">
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-4 rounded-[20px] bg-red-50 border border-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-3"
+                >
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2 space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom Complet</label>
               <div className="relative group">
-                <User size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                <User size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Amadou Diallo"
-                  className="w-full pl-16 pr-8 py-4 rounded-[24px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  className="w-full pl-14 pr-8 py-3.5 rounded-[22px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
                 />
               </div>
             </div>
 
-            <div className="md:col-span-2 space-y-2">
+            <div className="md:col-span-2 space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse Email</label>
               <div className="relative group">
-                <Mail size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                <Mail size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nom@exemple.com"
-                  className="w-full pl-16 pr-8 py-4 rounded-[24px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  className="w-full pl-14 pr-8 py-3.5 rounded-[22px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Téléphone</label>
               <div className="relative group">
-                <Phone size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                <Phone size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
                   type="tel"
                   placeholder="+221 ..."
-                  className="w-full pl-16 pr-8 py-4 rounded-[24px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  className="w-full pl-14 pr-8 py-3.5 rounded-[22px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Mot de Passe</label>
               <div className="relative group">
-                <Lock size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                <Lock size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-16 pr-8 py-4 rounded-[24px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  className="w-full pl-14 pr-12 py-3.5 rounded-[22px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
-            <div className="md:col-span-2 flex items-start gap-3 p-4 bg-slate-100 rounded-[20px] mb-4">
+            <div className="md:col-span-2 flex items-start gap-3 p-3 bg-slate-100 rounded-[18px]">
               <input type="checkbox" id="terms" required className="mt-1 w-4 h-4 accent-brand-green rounded" />
               <label htmlFor="terms" className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
                 J&apos;accepte les <Link href="#" className="text-brand-green hover:underline">Conditions Générales</Link> et la <Link href="#" className="text-brand-green hover:underline">Politique de Confidentialité</Link>.
@@ -155,14 +197,16 @@ export default function RegisterPage() {
             </div>
 
             <button
-              type="submit"
-              className="md:col-span-2 w-full py-5 bg-brand-green text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-[28px] transition-all shadow-2xl shadow-brand-green/30 hover:scale-[1.02] active:scale-95"
-            >
-              Créer mon compte
-            </button>
+                type="submit"
+                disabled={loading}
+                className="md:col-span-2 w-full py-5 bg-brand-green text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-[28px] transition-all shadow-xl shadow-brand-green/30 hover:shadow-brand-green/40 active:scale-95 flex items-center justify-center gap-2"
+              >
+                {loading ? "Création en cours..." : "Créer mon compte"}
+                {loading && <Sparkles size={14} className="animate-spin" />}
+              </button>
           </form>
 
-          <div className="mt-10 text-center">
+          <div className="mt-8 text-center">
             <p className="text-sm font-medium text-slate-500">
               Déjà membre ?{" "}
               <Link

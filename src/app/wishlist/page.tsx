@@ -11,14 +11,60 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { products } from "@/data/products";
+import { useWishlistStore } from "@/store/wishlist-store";
 import { useCartStore } from "@/store/cart-store";
+import { useAuthStore } from "@/store/auth-store";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function WishlistPage() {
   const addItem = useCartStore((s) => s.addItem);
+  const { items, fetchWishlist, removeFromWishlist, loading } = useWishlistStore();
+  const { isAuthenticated } = useAuthStore();
+  const router = useRouter();
   
-  // Mock favorites
-  const favorites = products.slice(0, 3);
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWishlist();
+    }
+  }, [fetchWishlist, isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-surface py-12 flex items-center justify-center">
+        <div className="max-w-md w-full px-6 text-center">
+          <div className="w-24 h-24 bg-background rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl border border-border-color">
+            <Heart size={40} className="text-muted" />
+          </div>
+          <h1 className="font-heading font-black text-3xl mb-4">Ma Wishlist</h1>
+          <p className="text-muted mb-10 leading-relaxed">
+            Connectez-vous pour enregistrer vos articles préférés et y accéder depuis tous vos appareils.
+          </p>
+          <Link 
+            href="/login"
+            className="block w-full py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-green-light transition-all shadow-lg shadow-brand-green/20"
+          >
+            Se Connecter
+          </Link>
+          <Link 
+            href="/shop"
+            className="block w-full py-4 mt-4 bg-background border border-border-color text-foreground rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-surface transition-all"
+          >
+            Explorer la boutique
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const favorites = items.map(item => ({
+    id: item.product.id,
+    name: item.product.name,
+    price: item.product.price,
+    image: item.product.image,
+    category: item.product.category,
+    rating: item.product.rating || 4.5
+  }));
 
   return (
     <div className="min-h-screen bg-surface py-12">
@@ -62,9 +108,12 @@ export default function WishlistPage() {
                 className="bg-background rounded-[32px] border border-border-color overflow-hidden shadow-sm hover:shadow-xl transition-all group"
               >
                 <div className="relative aspect-[4/5]">
-                  <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <button className="absolute top-4 right-4 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center text-red-500 hover:scale-110 transition-transform">
+                  <button 
+                    onClick={() => removeFromWishlist(product.id)}
+                    className="absolute top-4 right-4 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center text-red-500 hover:scale-110 transition-transform"
+                  >
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -72,7 +121,7 @@ export default function WishlistPage() {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full">
-                      {product.category}
+                      {product.category && typeof product.category === 'object' ? (product.category as any).name : product.category}
                     </span>
                     <div className="flex items-center gap-1 text-xs font-bold text-yellow-500">
                       <Star size={12} className="fill-yellow-500" /> {product.rating}

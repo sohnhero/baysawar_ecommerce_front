@@ -4,6 +4,9 @@ import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Footer from "./Footer";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 export default function ClientLayoutWrapper({
   children,
 }: {
@@ -21,6 +24,7 @@ export default function ClientLayoutWrapper({
     return (
       <main className="flex-1 min-h-screen">
         {children}
+        <ToastContainer position="bottom-right" theme="colored" />
       </main>
     );
   }
@@ -30,6 +34,7 @@ export default function ClientLayoutWrapper({
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
+      <ToastContainer position="bottom-right" theme="colored" />
     </>
   );
 }

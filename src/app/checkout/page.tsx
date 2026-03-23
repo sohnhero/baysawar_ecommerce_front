@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CreditCard, 
@@ -10,11 +10,15 @@ import {
   Phone, 
   ArrowRight, 
   ShieldCheck, 
-  ShoppingBag
+  ShoppingBag,
+  LogIn
 } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
+import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/auth-store";
 import Link from "next/link";
 import Image from "next/image";
+import { api } from "@/lib/api";
 
 const steps = ["Livraison", "Expédition", "Paiement", "Succès"];
 
@@ -24,12 +28,65 @@ const deliveryMethods = [
   { id: "reg", name: "Régions", price: 5000, time: "3-5 jours" },
 ];
 
+type DeliveryMethod = typeof deliveryMethods[0];
+
 export default function CheckoutPage() {
   const [step, setStep] = useState(0);
-  const [deliveryMethod, setDeliveryMethod] = useState(deliveryMethods[0]);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const { items, totalPrice, clearCart } = useCartStore();
-  const shipping = deliveryMethod.price;
+  const { isAuthenticated, user } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    city: "Dakar",
+    address: user?.address || "",
+    paymentMethod: "cod"
+  });
+
+  // Sync with user data when it loads
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || user.name || "",
+        phone: prev.phone || user.phone || "",
+        address: prev.address || user.address || ""
+      }));
+    }
+  }, [user]);
+  const shipping = deliveryMethod ? deliveryMethod.price : 0;
   const total = totalPrice() + shipping;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid hydration mismatch by waiting for mount
+  if (!mounted) return null;
+
+  // Auth guard — must be logged in to checkout
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center bg-surface">
+        <div className="text-center bg-background p-12 rounded-[40px] border border-border-color shadow-xl max-w-sm mx-4">
+          <div className="w-20 h-20 bg-brand-green/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <LogIn size={40} className="text-brand-green" />
+          </div>
+          <h1 className="font-heading font-black text-2xl mb-2">Connexion requise</h1>
+          <p className="text-muted text-sm mb-8">Veuillez vous connecter pour passer votre commande.</p>
+          <Link href="/login" className="inline-block w-full py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-green/20">
+            Se Connecter
+          </Link>
+          <Link href="/register" className="block mt-4 text-sm text-muted hover:text-brand-green transition-colors">
+            Pas encore de compte ? Créer un compte
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0 && step < 3) {
     return (
@@ -48,11 +105,72 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleNext = () => setStep(step + 1);
-  const handlePrev = () => setStep(step - 1);
-  const handleConfirm = () => {
-    clearCart();
-    setStep(3);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateStep = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (step === 0) {
+      if (!formData.name.trim()) newErrors.name = "Le nom est requis";
+      if (!formData.phone.trim()) {
+        newErrors.phone = "Le téléphone est requis";
+      } else if (formData.phone.replace(/[^0-9]/g, "").length < 8) {
+        newErrors.phone = "Le numéro doit contenir au moins 8 chiffres";
+      }
+      if (!formData.address.trim()) newErrors.address = "L'adresse est requise";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep()) {
+      setStep(step + 1);
+    } else {
+      toast.error("Veuillez corriger les erreurs avant de continuer.");
+    }
+  };
+
+  const handlePrev = () => {
+    setErrors({});
+    setStep(step - 1);
+  };
+
+  const handleConfirm = async () => {
+    if (!validateStep()) return;
+    
+    setLoading(true);
+    try {
+      const orderData = {
+        items: items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: parseFloat(item.price.toString())
+        })),
+        shippingAddress: `${formData.address}, ${formData.city}`,
+        phone: formData.phone.trim(),
+        totalAmount: parseFloat(total.toString()),
+        paymentMethod: formData.paymentMethod
+      };
+
+      const result = await api.post<any>("/orders", orderData);
+      setOrderId(result.id);
+      clearCart();
+      setStep(3);
+    } catch (error: any) {
+      console.error("Failed to create order:", error);
+      const message = error.message || "Une erreur est survenue lors de la création de la commande.";
+      toast.error(message);
+      
+      // If it's a validation error about phone, go back to step 0
+      if (message.toLowerCase().includes("phone") || message.toLowerCase().includes("téléphone")) {
+        setStep(0);
+        setErrors({ phone: "Numéro de téléphone invalide" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -104,15 +222,43 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
                       <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Nom complet</label>
-                      <input type="text" placeholder="Ex: Amadou Diallo" className="w-full px-5 py-4 rounded-2xl bg-surface border border-border-color focus:outline-none focus:border-brand-green transition-all" />
+                      <input 
+                        type="text" 
+                        value={formData.name}
+                        onChange={(e) => {
+                          setFormData({...formData, name: e.target.value});
+                          if (errors.name) setErrors({...errors, name: ""});
+                        }}
+                        placeholder="Ex: Amadou Diallo" 
+                        className={`w-full px-5 py-4 rounded-2xl bg-surface border transition-all focus:outline-none ${
+                          errors.name ? "border-red-500 ring-4 ring-red-500/5" : "border-border-color focus:border-brand-green"
+                        }`} 
+                      />
+                      {errors.name && <p className="text-[10px] text-red-500 font-bold mt-2 ml-2 tracking-wide uppercase">{errors.name}</p>}
                     </div>
                     <div>
                       <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Téléphone</label>
-                      <input type="tel" placeholder="+221 77 ..." className="w-full px-5 py-4 rounded-2xl bg-surface border border-border-color focus:outline-none focus:border-brand-green transition-all" />
+                      <input 
+                        type="tel" 
+                        value={formData.phone}
+                        onChange={(e) => {
+                          setFormData({...formData, phone: e.target.value});
+                          if (errors.phone) setErrors({...errors, phone: ""});
+                        }}
+                        placeholder="+221 77 ..." 
+                        className={`w-full px-5 py-4 rounded-2xl bg-surface border transition-all focus:outline-none ${
+                          errors.phone ? "border-red-500 ring-4 ring-red-500/5" : "border-border-color focus:border-brand-green"
+                        }`} 
+                      />
+                      {errors.phone && <p className="text-[10px] text-red-500 font-bold mt-2 ml-2 tracking-wide uppercase">{errors.phone}</p>}
                     </div>
                     <div>
                       <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Ville</label>
-                      <select className="w-full px-5 py-4 rounded-2xl bg-surface border border-border-color focus:outline-none focus:border-brand-green transition-all">
+                      <select 
+                        value={formData.city}
+                        onChange={(e) => setFormData({...formData, city: e.target.value})}
+                        className="w-full px-5 py-4 rounded-2xl bg-surface border border-border-color focus:outline-none focus:border-brand-green transition-all"
+                      >
                         <option>Dakar</option>
                         <option>Thies</option>
                         <option>Saint-Louis</option>
@@ -121,7 +267,19 @@ export default function CheckoutPage() {
                     </div>
                     <div className="md:col-span-2">
                       <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Adresse précise</label>
-                      <textarea rows={3} placeholder="Quartier, Rue, Porte, Indications..." className="w-full px-5 py-4 rounded-2xl bg-surface border border-border-color focus:outline-none focus:border-brand-green transition-all resize-none" />
+                      <textarea 
+                        rows={3} 
+                        value={formData.address}
+                        onChange={(e) => {
+                          setFormData({...formData, address: e.target.value});
+                          if (errors.address) setErrors({...errors, address: ""});
+                        }}
+                        placeholder="Quartier, Rue, Porte, Indications..." 
+                        className={`w-full px-5 py-4 rounded-2xl bg-surface border transition-all focus:outline-none resize-none ${
+                          errors.address ? "border-red-500 ring-4 ring-red-500/5" : "border-border-color focus:border-brand-green"
+                        }`} 
+                      />
+                      {errors.address && <p className="text-[10px] text-red-500 font-bold mt-2 ml-2 tracking-wide uppercase">{errors.address}</p>}
                     </div>
                   </div>
                   <button onClick={handleNext} className="w-full mt-10 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3">
@@ -147,15 +305,15 @@ export default function CheckoutPage() {
                       <label
                         key={m.id}
                         className={`group flex items-center justify-between p-6 rounded-2xl border-2 cursor-pointer transition-all ${
-                          deliveryMethod.id === m.id
+                          deliveryMethod?.id === m.id
                             ? "border-brand-green bg-brand-green/5 ring-4 ring-brand-green/5"
                             : "border-border-color hover:border-brand-green/30"
                         }`}
                         onClick={() => setDeliveryMethod(m)}
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${deliveryMethod.id === m.id ? "border-brand-green" : "border-border-color"}`}>
-                            {deliveryMethod.id === m.id && <div className="w-3 h-3 bg-brand-green rounded-full" />}
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${deliveryMethod?.id === m.id ? "border-brand-green" : "border-border-color"}`}>
+                            {deliveryMethod?.id === m.id && <div className="w-3 h-3 bg-brand-green rounded-full" />}
                           </div>
                           <div>
                             <p className="font-bold text-sm">{m.name}</p>
@@ -168,7 +326,11 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex gap-4 mt-10">
                     <button onClick={handlePrev} className="px-8 py-5 border border-border-color rounded-2xl font-bold text-muted hover:bg-surface transition-all">Retour</button>
-                    <button onClick={handleNext} className="flex-1 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3">
+                    <button 
+                      onClick={handleNext} 
+                      disabled={!deliveryMethod}
+                      className="flex-1 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale-[0.5]"
+                    >
                       Paiement <ArrowRight size={18} />
                     </button>
                   </div>
@@ -194,9 +356,17 @@ export default function CheckoutPage() {
                       { id: "wave", label: "Wave", icon: <Phone size={24} />, desc: "Scannez le code QR" },
                       { id: "card", label: "Carte Bancaire", icon: <CreditCard size={24} />, desc: "Visa, Mastercard" },
                     ].map((m) => (
-                      <label key={m.id} className="group p-6 rounded-2xl border-2 border-border-color hover:border-brand-green/40 cursor-pointer transition-all flex flex-col gap-4">
-                        <input type="radio" name="payment" className="hidden" defaultChecked={m.id === "cod"} />
-                        <div className="w-12 h-12 bg-surface rounded-xl flex items-center justify-center text-muted group-hover:text-brand-green group-hover:bg-brand-green/10 transition-all">
+                      <label 
+                        key={m.id} 
+                        className={`group p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col gap-4 ${
+                          formData.paymentMethod === m.id ? "border-brand-green bg-brand-green/5" : "border-border-color hover:border-brand-green/30"
+                        }`}
+                        onClick={() => setFormData({...formData, paymentMethod: m.id})}
+                      >
+                        <input type="radio" name="payment" className="hidden" checked={formData.paymentMethod === m.id} readOnly />
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                          formData.paymentMethod === m.id ? "bg-brand-green text-white" : "bg-surface text-muted"
+                        }`}>
                           {m.icon}
                         </div>
                         <div>
@@ -208,8 +378,12 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex gap-4 mt-10">
                     <button onClick={handlePrev} className="px-8 py-5 border border-border-color rounded-2xl font-bold text-muted hover:bg-surface transition-all">Retour</button>
-                    <button onClick={handleConfirm} className="flex-1 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3">
-                      Confirmer la commande <Check size={18} />
+                    <button 
+                      onClick={handleConfirm} 
+                      disabled={loading}
+                      className="flex-1 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {loading ? "Création..." : "Confirmer la commande"} <Check size={18} />
                     </button>
                   </div>
                 </motion.div>
@@ -223,11 +397,11 @@ export default function CheckoutPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   className="bg-background rounded-[40px] border border-border-color p-12 text-center shadow-sm"
                 >
-                  <div className="w-24 h-24 bg-brand-green/10 text-brand-green rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
+                  <div className="w-24 h-24 bg-brand-green/10 text-brand-green rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
                     <Check size={48} />
                   </div>
                   <h2 className="font-heading font-black text-3xl mb-4">Commande Réussie ! 🎉</h2>
-                  <p className="text-muted mb-8 max-w-sm mx-auto">Votre commande <span className="text-brand-blue font-bold">#ORD-2026-004</span> a été validée. Nous vous contacterons par téléphone d&apos;ici 15 minutes.</p>
+                  <p className="text-muted mb-8 max-w-sm mx-auto">Votre commande <span className="text-brand-blue font-bold">#{orderId?.substring(0,8).toUpperCase()}</span> a été validée. Nous vous contacterons par téléphone d&apos;ici 15 minutes.</p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link href="/account/orders" className="flex-1 py-4 bg-surface border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-background transition-all">
                       Suivre ma commande
@@ -250,7 +424,7 @@ export default function CheckoutPage() {
                   {items.map((item) => (
                     <div key={item.productId} className="flex gap-4">
                       <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-surface shrink-0">
-                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                        <Image src={item.image} alt={item.name} fill className="object-cover" sizes="56px" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold line-clamp-1">{item.name}</p>
@@ -267,8 +441,10 @@ export default function CheckoutPage() {
                     <span>{totalPrice().toLocaleString()} FCFA</span>
                   </div>
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-muted">Livraison ({deliveryMethod.name.split(' ')[0]})</span>
-                    <span>{shipping.toLocaleString()} FCFA</span>
+                    <span className="text-muted">Livraison {deliveryMethod ? `(${deliveryMethod.name.split(' ')[0]})` : "" }</span>
+                    <span className={!deliveryMethod ? "text-brand-green font-bold animate-pulse" : ""}>
+                      {deliveryMethod ? `${shipping.toLocaleString()} FCFA` : "À sélectionner"}
+                    </span>
                   </div>
                   <div className="flex justify-between text-lg font-black pt-2">
                     <span>Total</span>

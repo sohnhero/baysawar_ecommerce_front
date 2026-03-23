@@ -20,27 +20,65 @@ import {
 import { useCartStore } from "@/store/cart-store";
 import { useThemeStore } from "@/store/theme-store";
 import { useAuthStore } from "@/store/auth-store";
+import { useWishlistStore } from "@/store/wishlist-store";
 import { useRouter } from "next/navigation";
-import { categories } from "@/data/categories";
-import { LogOut, Package, ClipboardList } from "lucide-react";
+import { toast } from "react-toastify";
+import { api } from "@/lib/api";
+import { LogOut, Package, ClipboardList, Box } from "lucide-react";
+import LogoutConfirmModal from "@/components/ui/LogoutConfirmModal";
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const totalItems = useCartStore((s) => s.totalItems());
+  const totalItems = useCartStore((s: any) => s.totalItems());
   const { isDark, toggle } = useThemeStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [accountOpen, setAccountOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  
+  const { items: wishlistItems, fetchWishlist } = useWishlistStore();
+  const [navCategories, setNavCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+    if (isAuthenticated) {
+      fetchWishlist();
+    }
+    
+    // Fetch categories for the menu
+    const fetchMenuCategories = async () => {
+      try {
+        const data = await api.get<any[]>("/categories");
+        setNavCategories(data);
+      } catch (error) {
+        console.error("Failed to fetch menu categories:", error);
+      }
+    };
+    fetchMenuCategories();
+  }, [isAuthenticated, fetchWishlist]);
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (searchValue.trim()) {
       router.push(`/shop?search=${encodeURIComponent(searchValue.trim())}`);
       setSearchOpen(false);
+    }
+  };
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      toast.info("Veuillez vous connecter pour gérer votre liste de souhaits.", {
+        icon: <Heart size={18} className="text-red-500" />,
+        className: "rounded-2xl font-semibold text-sm",
+      });
+    } else {
+      router.push("/wishlist");
     }
   };
 
@@ -109,15 +147,15 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gradient-to-br from-brand-green via-brand-green to-brand-green-dark flex items-center justify-center text-white font-heading font-black text-lg lg:text-xl shadow-lg shadow-brand-green/20 group-hover:shadow-brand-green/40 transition-shadow">
+            <Link href="/" className="flex items-center gap-2 lg:gap-2.5 shrink-0 group">
+              <div className="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-gradient-to-br from-brand-green via-brand-green to-brand-green-dark flex items-center justify-center text-white font-heading font-black text-base lg:text-xl shadow-lg shadow-brand-green/20 group-hover:shadow-brand-green/40 transition-shadow">
                 B
               </div>
-              <div className="hidden sm:block">
-                <span className="font-heading font-black text-xl lg:text-2xl tracking-tight block leading-none">
+              <div className="block">
+                <span className="font-heading font-black text-sm lg:text-2xl tracking-tight block leading-none">
                   Baysa<span className="text-brand-green">warr</span>
                 </span>
-                <span className="text-[10px] text-muted tracking-[0.2em] uppercase font-medium leading-none text-foreground/60">
+                <span className="hidden sm:block text-[10px] text-muted tracking-[0.2em] uppercase font-medium leading-none text-foreground/60 mt-0.5">
                   Artisanat Premium
                 </span>
               </div>
@@ -151,16 +189,17 @@ export default function Header() {
                 <Search size={20} />
               </button>
 
-              {/* Wishlist */}
-              <Link
-                href="/wishlist"
+              <button
+                onClick={handleWishlistClick}
                 className="hidden sm:flex p-2.5 rounded-xl hover:bg-surface transition-colors relative"
               >
                 <Heart size={20} />
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                  3
-                </span>
-              </Link>
+                {mounted && wishlistItems.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {wishlistItems.length}
+                  </span>
+                )}
+              </button>
 
               {/* Account / Auth */}
               <div 
@@ -197,8 +236,8 @@ export default function Header() {
                         ) : (
                           <>
                             <div className="px-4 py-3 border-b border-border-color mb-1">
-                              <p className="text-xs font-bold text-muted uppercase tracking-widest leading-none mb-1">Session active</p>
-                              <p className="text-sm font-black truncate">{user?.email}</p>
+                              <p className="text-[10px] font-black text-brand-green uppercase tracking-widest leading-none mb-1">Session active</p>
+                              <p className="text-sm font-black truncate">{user?.name}</p>
                             </div>
                             <Link href="/account" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors">
                               <User size={18} className="text-muted" /> Profil
@@ -206,16 +245,19 @@ export default function Header() {
                             <Link href="/account/orders" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors">
                               <Package size={18} className="text-muted" /> Mes commandes
                             </Link>
-                            <Link href="/wishlist" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors">
+                            <button 
+                              onClick={handleWishlistClick}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors text-left"
+                            >
                               <Heart size={18} className="text-muted" /> Wishlist
-                            </Link>
+                            </button>
                             {user?.role === 'admin' && (
                               <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-black text-brand-green transition-colors">
                                 <ClipboardList size={18} /> Panel Admin
                               </Link>
                             )}
                             <button 
-                              onClick={() => logout()}
+                              onClick={() => setShowLogoutConfirm(true)}
                               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-red-50 text-red-500 text-sm font-semibold transition-colors mt-1"
                             >
                               <LogOut size={18} /> Déconnexion
@@ -235,7 +277,7 @@ export default function Header() {
               >
                 <div className="relative">
                   <ShoppingCart size={20} className="text-brand-green" />
-                  {totalItems > 0 && (
+                  {mounted && totalItems > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -248,7 +290,7 @@ export default function Header() {
                 <div className="hidden xl:block text-left">
                   <p className="text-[10px] text-muted leading-none">Mon Panier</p>
                   <p className="text-xs font-bold text-brand-green leading-tight">
-                    {useCartStore.getState().totalPrice().toLocaleString()} FCFA
+                    {mounted ? useCartStore.getState().totalPrice().toLocaleString() : 0} FCFA
                   </p>
                 </div>
               </Link>
@@ -286,42 +328,45 @@ export default function Header() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.98 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="absolute top-12 left-0 w-[800px] bg-background rounded-b-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-border-color border-t-0 z-50 overflow-hidden"
+                      className="absolute top-12 left-0 w-[850px] bg-background rounded-b-[32px] shadow-[0_30px_60px_rgba(0,0,0,0.12)] border border-border-color border-t-0 z-50 overflow-hidden"
                     >
-                      <div className="flex h-full">
+                      <div className="flex h-full min-h-[400px]">
                         {/* Main Grid */}
-                        <div className="flex-1 p-8 grid grid-cols-3 gap-8">
-                          {categories.map((cat) => (
+                        <div className="flex-1 p-8 grid grid-cols-3 gap-8 overflow-y-auto max-h-[600px] no-scrollbar">
+                          {navCategories.map((cat) => (
                             <div key={cat.id} className="space-y-4">
-                              <div className="flex items-center gap-2 group/title">
-                                <span className="text-xl bg-surface p-2 rounded-xl group-hover/title:bg-brand-green/10 transition-colors">
-                                  {cat.icon}
+                              <div className="flex items-center gap-3 group/title">
+                                <span className="text-xl bg-surface p-2.5 rounded-2xl group-hover/title:bg-brand-green/10 transition-all group-hover/title:scale-110">
+                                  {cat.icon || "📦"}
                                 </span>
                                 <Link
                                   href={`/shop?cat=${cat.slug}`}
-                                  className="font-heading font-bold text-base text-brand-blue hover:text-brand-green transition-colors"
+                                  onClick={() => setMegaMenuOpen(false)}
+                                  className="font-heading font-black text-sm text-brand-blue hover:text-brand-green transition-colors uppercase tracking-tight"
                                 >
                                   {cat.name}
                                 </Link>
                               </div>
-                              <ul className="space-y-2.5 pl-1">
-                                {cat.subCategories.map((sub) => (
-                                  <li key={sub.name}>
+                              <ul className="space-y-2 pl-1">
+                                {cat.products?.map((prod: any) => (
+                                  <li key={prod.id}>
                                     <Link
-                                      href={sub.href}
-                                      className="text-[13px] text-muted hover:text-brand-green flex items-center gap-2 transition-all hover:translate-x-1"
+                                      href={`/shop/${prod.id}`}
+                                      onClick={() => setMegaMenuOpen(false)}
+                                      className="text-[11px] text-muted hover:text-brand-green flex items-center gap-2 transition-all hover:translate-x-1 font-bold"
                                     >
-                                      <span className="w-1 h-1 rounded-full bg-border-color" />
-                                      {sub.name}
+                                      <span className="w-1 h-1 rounded-full bg-border-color/40" />
+                                      {prod.name}
                                     </Link>
                                   </li>
                                 ))}
                                 <li>
                                   <Link
                                     href={`/shop?cat=${cat.slug}`}
-                                    className="text-[12px] font-bold text-brand-green hover:underline mt-2 inline-block"
+                                    onClick={() => setMegaMenuOpen(false)}
+                                    className="text-[10px] font-black text-brand-green hover:underline mt-3 inline-flex items-center gap-1 uppercase tracking-widest"
                                   >
-                                    Découvrir tout
+                                    Tout découvrir <ChevronDown size={10} className="-rotate-90" />
                                   </Link>
                                 </li>
                               </ul>
@@ -329,46 +374,56 @@ export default function Header() {
                           ))}
                         </div>
 
-                        {/* Featured Sidebar */}
-                        <div className="w-64 bg-surface p-6 flex flex-col pt-8">
-                          <h4 className="font-heading font-bold text-xs uppercase tracking-widest text-muted mb-4 px-1">
-                            En Vedette
+                        {/* Featured Sidebar / Top Category */}
+                        <div className="w-72 bg-surface/50 p-8 flex flex-col border-l border-border-color">
+                          <h4 className="font-heading font-black text-[10px] uppercase tracking-[0.2em] text-muted mb-6">
+                            À la une
                           </h4>
-                          <div className="space-y-6">
-                            {categories.filter(c => c.featured).slice(0, 1).map(cat => (
-                              <Link 
-                                key={cat.id} 
-                                href={cat.featured?.link || "#"}
-                                className="group/feat block"
-                              >
-                                <div className="relative aspect-square rounded-2xl overflow-hidden mb-3">
-                                  <Image 
-                                    src={cat.featured?.image || ""} 
-                                    alt={cat.featured?.title || ""} 
-                                    fill 
-                                    className="object-cover group-hover/feat:scale-110 transition-transform duration-500"
-                                  />
-                                  {cat.featured?.badge && (
-                                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-brand-green text-white text-[10px] font-bold rounded-lg shadow-lg">
-                                      {cat.featured.badge}
+                          {navCategories.length > 0 && (
+                            <div className="space-y-6">
+                              {navCategories.slice(0, 1).map((cat) => (
+                                <Link 
+                                  key={cat.id} 
+                                  href={`/shop?cat=${cat.slug}`}
+                                  onClick={() => setMegaMenuOpen(false)}
+                                  className="group/feat block"
+                                >
+                                  <div className="relative aspect-[4/5] rounded-[24px] overflow-hidden mb-4 shadow-xl shadow-black/5 border border-white/50">
+                                    {cat.image ? (
+                                      <Image 
+                                        src={cat.image} 
+                                        alt={cat.name} 
+                                        fill 
+                                        className="object-cover group-hover/feat:scale-110 transition-transform duration-700"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
+                                        <Box size={40} />
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/feat:opacity-100 transition-opacity duration-500" />
+                                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-brand-blue text-[9px] font-black rounded-lg shadow-lg uppercase tracking-widest">
+                                      Populaire
                                     </span>
-                                  )}
-                                </div>
-                                <p className="font-heading font-bold text-sm text-brand-blue group-hover/feat:text-brand-green transition-colors px-1">
-                                  {cat.featured?.title}
-                                </p>
-                                <p className="text-[11px] text-muted px-1 mt-0.5 group-hover/feat:text-foreground transition-colors">
-                                  Qualité artisanale certifiée →
-                                </p>
-                              </Link>
-                            ))}
-                          </div>
+                                  </div>
+                                  <p className="font-heading font-black text-base text-brand-blue group-hover/feat:text-brand-green transition-colors leading-tight">
+                                    Collection {cat.name}
+                                  </p>
+                                  <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1 group-hover/feat:text-foreground transition-colors">
+                                    Savoir-faire local →
+                                  </p>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
                           
-                          <div className="mt-auto pt-6 border-t border-border-color">
-                            <div className="bg-brand-blue text-white p-4 rounded-2xl flex flex-col gap-1 items-center text-center">
-                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-60">Offre Limitée</p>
-                              <p className="text-sm font-heading font-bold">-20% sur tout</p>
-                              <Link href="/shop" className="text-[9px] font-bold underline hover:text-brand-green-light mt-1">CODE: BAYS2026</Link>
+                          <div className="mt-auto pt-8">
+                            <div className="bg-brand-blue rounded-[20px] p-5 text-white shadow-lg shadow-brand-blue/20 relative overflow-hidden group/card">
+                              <div className="absolute -top-4 -right-4 w-12 h-12 bg-white/10 rounded-full blur-xl group-hover/card:scale-150 transition-transform duration-700" />
+                              <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">Privilège</p>
+                              <p className="text-sm font-black tracking-tight mb-3">Livraison offerte dès 25k FCFA</p>
+                              <div className="h-px bg-white/10 w-full mb-3" />
+                              <Link href="/shop" onClick={() => setMegaMenuOpen(false)} className="text-[10px] font-black text-brand-green-light hover:underline uppercase tracking-widest">Voir conditions</Link>
                             </div>
                           </div>
                         </div>
@@ -387,27 +442,32 @@ export default function Header() {
                 Boutique
                 <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-brand-green scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
               </Link>
-              {categories.map((cat) => (
+              {navCategories.slice(0, 3).map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/shop?cat=${cat.slug}`}
-                  className="h-12 flex items-center px-4 text-sm font-medium text-muted hover:text-brand-green transition-colors relative group"
+                  className="h-12 flex items-center px-4 text-sm font-medium text-muted hover:text-brand-green transition-colors relative group uppercase tracking-widest text-[10px] font-black"
                 >
                   {cat.name}
                   <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-brand-green scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </Link>
               ))}
-              <Link href="/admin" className="h-12 flex items-center px-4 text-sm font-medium text-muted hover:text-brand-green transition-colors relative group">
-                Admin
-                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-brand-green scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-              </Link>
+              {user?.role === 'admin' && (
+                <Link href="/admin" className="h-12 flex items-center px-4 text-sm font-medium text-muted hover:text-brand-green transition-colors relative group">
+                  Admin
+                  <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-brand-green scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                </Link>
+              )}
 
               {/* Right-side promo */}
               <div className="ml-auto flex items-center gap-4">
-                <span className="text-xs text-brand-green font-semibold flex items-center gap-1.5 animate-pulse">
+                <Link 
+                  href="/#flash-deals" 
+                  className="text-xs text-brand-green font-semibold flex items-center gap-1.5 hover:text-brand-green-light transition-colors animate-pulse"
+                >
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-green" />
                   Offres Spéciales
-                </span>
+                </Link>
                 <Link href="/shop" className="text-[11px] font-bold uppercase tracking-wider text-muted hover:text-brand-blue transition-colors border-l border-border-color pl-4">
                   Nouveautés
                 </Link>
@@ -455,42 +515,53 @@ export default function Header() {
             >
               <nav className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
                 <Link href="/" onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 rounded-xl text-sm font-semibold hover:bg-surface transition-colors">
-                  🏠 Accueil
+                  className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color">
+                  <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">🏠</span> 
+                  Accueil
                 </Link>
                 <Link href="/shop" onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 rounded-xl text-sm font-semibold hover:bg-surface transition-colors">
-                  🛍️ Boutique
+                  className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color">
+                  <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">🛍️</span>
+                  Boutique
                 </Link>
 
-                <div className="px-4 py-2 text-xs font-semibold text-muted uppercase tracking-wider mt-2">
-                  Catégories
+                <div className="px-5 py-4 text-[10px] font-black text-muted uppercase tracking-[0.2em] mt-2">
+                  Nos Univers
                 </div>
-                {categories.map((cat) => (
+                {navCategories.map((cat) => (
                   <div key={cat.id} className="pb-2">
                     <button
-                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-surface transition-colors text-brand-blue"
+                      className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-black hover:bg-surface transition-colors text-brand-blue border border-transparent hover:border-border-color"
                       onClick={(e) => {
                         const nextEl = (e.currentTarget.nextElementSibling as HTMLElement);
                         nextEl.style.display = nextEl.style.display === 'none' ? 'block' : 'none';
                       }}
                     >
-                      <span className="flex items-center gap-2">
-                        <span>{cat.icon}</span> {cat.name}
+                      <span className="flex items-center gap-3">
+                        <span className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-base">{cat.icon || "📦"}</span> 
+                        {cat.name}
                       </span>
-                      <ChevronDown size={14} />
+                      <ChevronDown size={14} className="text-muted" />
                     </button>
-                    <div className="pl-10 space-y-0.5 hidden">
-                      {cat.subCategories.map((sub) => (
+                    <div className="pl-12 space-y-1 hidden pb-2">
+                      {cat.products?.map((sub: any) => (
                         <Link
-                          key={sub.name}
-                          href={sub.href}
+                          key={sub.id}
+                          href={`/shop/${sub.id}`}
                           onClick={() => setMobileOpen(false)}
-                          className="block px-3 py-1.5 text-[13px] text-muted hover:text-brand-green transition-colors"
+                          className="block px-3 py-2 text-[13px] text-muted hover:text-brand-green transition-colors font-bold flex items-center gap-2"
                         >
+                          <span className="w-1 h-1 rounded-full bg-border-color" />
                           {sub.name}
                         </Link>
                       ))}
+                      <Link
+                          href={`/shop?cat=${cat.slug}`}
+                          onClick={() => setMobileOpen(false)}
+                          className="block px-3 py-2.5 text-[10px] font-black text-brand-green uppercase tracking-widest mt-1 border-t border-dotted border-border-color"
+                        >
+                          Découvrir la collection →
+                        </Link>
                     </div>
                   </div>
                 ))}
@@ -505,10 +576,12 @@ export default function Header() {
                   className="block px-4 py-3 rounded-xl text-sm font-medium hover:bg-surface transition-colors">
                   👤 Mon Compte
                 </Link>
-                <Link href="/admin" onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 rounded-xl text-sm font-medium hover:bg-surface transition-colors">
-                  ⚙️ Admin
-                </Link>
+                {user?.role === 'admin' && (
+                  <Link href="/admin" onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-3 rounded-xl text-sm font-medium hover:bg-surface transition-colors">
+                    ⚙️ Admin
+                  </Link>
+                )}
 
                 <button
                   onClick={() => { toggle(); setMobileOpen(false); }}
@@ -522,6 +595,17 @@ export default function Header() {
           )}
         </AnimatePresence>
       </header>
+
+      <LogoutConfirmModal 
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={() => {
+          logout();
+          setShowLogoutConfirm(false);
+          router.push("/login");
+          toast.success("Vous avez été déconnecté");
+        }}
+      />
     </>
   );
 }

@@ -13,31 +13,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { products } from "@/data/products";
-
-const userOrders = [
-  {
-    id: "ORD-2026-004",
-    date: "18 Mars 2026",
-    status: "processing",
-    total: 24500,
-    items: [
-      { ...products[0], quantity: 1 },
-      { ...products[2], quantity: 2 }
-    ]
-  },
-  {
-    id: "ORD-2026-001",
-    date: "10 Janvier 2026",
-    status: "delivered",
-    total: 12000,
-    items: [
-      { ...products[5], quantity: 1 }
-    ]
-  }
-];
+import { api } from "@/lib/api";
+import { useEffect } from "react";
 
 const statusStyles = {
+  pending: { label: "En attente", icon: <Clock size={14} />, color: "text-amber-600 bg-amber-50 border-amber-100" },
   processing: { label: "En cours de préparation", icon: <Clock size={14} />, color: "text-yellow-600 bg-yellow-50 border-yellow-100" },
   shipped: { label: "En cours de livraison", icon: <Truck size={14} />, color: "text-blue-600 bg-blue-50 border-blue-100" },
   delivered: { label: "Livré", icon: <CheckCircle2 size={14} />, color: "text-green-600 bg-green-50 border-green-100" },
@@ -46,14 +26,26 @@ const statusStyles = {
 
 export default function ClientOrdersPage() {
   const [trackingOrder, setTrackingOrder] = useState<string | null>(null);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getOrderStatus = (orderId: string): "processing" | "shipped" | "delivered" | "cancelled" => {
-    const order = userOrders.find(o => o.id === orderId);
-    const status = order?.status;
-    if (status === "processing" || status === "shipped" || status === "delivered" || status === "cancelled") {
-      return status;
-    }
-    return "processing";
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const data = await api.get<any[]>("/orders/my");
+        setOrders(data);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
+
+  const getOrderStatus = (orderId: string): any => {
+    const order = orders.find(o => o.id === orderId);
+    return order?.status || "processing";
   };
   return (
     <div className="min-h-screen bg-surface py-12">
@@ -68,7 +60,22 @@ export default function ClientOrdersPage() {
         </div>
 
         <div className="space-y-6">
-          {userOrders.map((order) => (
+          {loading ? (
+            <div className="text-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-green mx-auto mb-4"></div>
+              <p className="text-muted">Chargement de vos commandes...</p>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-20 bg-background rounded-3xl border border-border-color">
+              <Package size={48} className="mx-auto text-muted mb-4 opacity-20" />
+              <h2 className="font-heading font-bold text-xl mb-2">Aucune commande trouvée</h2>
+              <p className="text-muted mb-8">Vous n&apos;avez pas encore passé de commande sur Baysawarr.</p>
+              <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs">
+                Commencer mes achats
+              </Link>
+            </div>
+          ) : (
+            orders.map((order) => (
             <motion.div
               key={order.id}
               initial={{ opacity: 0, y: 10 }}
@@ -82,36 +89,36 @@ export default function ClientOrdersPage() {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-muted uppercase tracking-widest">Numéro</p>
-                    <p className="font-bold text-brand-blue">{order.id}</p>
+                    <p className="font-bold text-brand-blue">#{order.id.substring(0,8).toUpperCase()}</p>
                   </div>
                 </div>
                 <div>
                   <p className="text-xs font-bold text-muted uppercase tracking-widest">Date</p>
-                  <p className="font-bold">{order.date}</p>
+                  <p className="font-bold">{new Date(order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                 </div>
                 <div>
                   <p className="text-xs font-bold text-muted uppercase tracking-widest">Total</p>
-                  <p className="font-bold text-brand-green">{order.total.toLocaleString()} FCFA</p>
+                  <p className="font-bold text-brand-green">{parseFloat(order.totalAmount).toLocaleString()} FCFA</p>
                 </div>
-                <div className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${statusStyles[order.status as keyof typeof statusStyles].color}`}>
-                  {statusStyles[order.status as keyof typeof statusStyles].icon}
-                  {statusStyles[order.status as keyof typeof statusStyles].label}
+                <div className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${statusStyles[order.status as keyof typeof statusStyles]?.color || statusStyles.pending.color}`}>
+                  {statusStyles[order.status as keyof typeof statusStyles]?.icon || statusStyles.pending.icon}
+                  {statusStyles[order.status as keyof typeof statusStyles]?.label || statusStyles.pending.label}
                 </div>
               </div>
 
               <div className="p-6">
                 <div className="flex flex-col md:flex-row gap-8">
                   <div className="flex-1 space-y-4">
-                    {order.items.map((item) => (
+                    {order.items.map((item: any) => (
                       <div key={item.id} className="flex items-center gap-4 group">
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-surface shrink-0 border border-border-color">
-                          <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                          <Image src={item.product.image} alt={item.product.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="64px" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate">{item.name}</p>
-                          <p className="text-xs text-muted">Quantité: {item.quantity} · {item.price.toLocaleString()} FCFA</p>
+                          <p className="text-sm font-bold truncate">{item.product.name}</p>
+                          <p className="text-xs text-muted">Quantité: {item.quantity} · {parseFloat(item.price).toLocaleString()} FCFA</p>
                         </div>
-                        <Link href={`/shop/${item.id}`} className="p-2 rounded-xl hover:bg-surface text-muted hover:text-brand-green transition-all">
+                        <Link href={`/shop/${item.product.id}`} className="p-2 rounded-xl hover:bg-surface text-muted hover:text-brand-green transition-all">
                           <ExternalLink size={16} />
                         </Link>
                       </div>
@@ -132,7 +139,7 @@ export default function ClientOrdersPage() {
                 </div>
               </div>
             </motion.div>
-          ))}
+          )))}
         </div>
 
         {/* Tracking Modal */}
