@@ -24,7 +24,7 @@ import { useWishlistStore } from "@/store/wishlist-store";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { api } from "@/lib/api";
-import { LogOut, Package, ClipboardList, Box } from "lucide-react";
+import { LogOut, Package, ClipboardList, Box, ArrowRight } from "lucide-react";
 import LogoutConfirmModal from "@/components/ui/LogoutConfirmModal";
 
 export default function Header() {
@@ -118,10 +118,6 @@ export default function Header() {
             >
               {isDark ? <Sun size={13} /> : <Moon size={13} />}
             </button>
-            <span className="text-white/30">|</span>
-            <Link href="/account" className="text-white/70 hover:text-white transition-colors">
-              Mon Compte
-            </Link>
           </div>
         </div>
       </div>
@@ -566,20 +562,50 @@ export default function Header() {
                   </div>
                 ))}
 
-                <div className="border-t border-border-color my-4" />
+                <div className="px-5 py-4 text-[10px] font-black text-muted uppercase tracking-[0.2em] mt-2">
+                  Mon Espace
+                </div>
+                {!isAuthenticated ? (
+                  <Link 
+                    href="/login" 
+                    onClick={() => setMobileOpen(false)}
+                    className="mx-4 flex items-center justify-between p-4 rounded-2xl bg-brand-green text-white shadow-lg shadow-brand-green/20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <User size={20} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider opacity-80 leading-none mb-1">Bienvenue</p>
+                        <p className="text-sm font-black uppercase tracking-tight">Se connecter</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} />
+                  </Link>
+                ) : (
+                  <Link 
+                    href="/account" 
+                    onClick={() => setMobileOpen(false)}
+                    className="mx-4 flex items-center justify-between p-4 rounded-2xl bg-surface border border-border-color"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center">
+                        <User size={20} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted leading-none mb-1">Mon Compte</p>
+                        <p className="text-sm font-black uppercase tracking-tight truncate max-w-[150px]">{user?.name.split(' ')[0]}</p>
+                      </div>
+                    </div>
+                    <ChevronDown size={18} className="-rotate-90 text-muted" />
+                  </Link>
+                )}
 
-                <Link href="/cart" onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 rounded-xl text-sm font-medium hover:bg-surface transition-colors">
-                  🛒 Panier {totalItems > 0 && `(${totalItems})`}
-                </Link>
-                <Link href="/account" onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 rounded-xl text-sm font-medium hover:bg-surface transition-colors">
-                  👤 Mon Compte
-                </Link>
                 {user?.role === 'admin' && (
                   <Link href="/admin" onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-3 rounded-xl text-sm font-medium hover:bg-surface transition-colors">
-                    ⚙️ Admin
+                    className="block px-4 py-4 mx-4 mt-2 rounded-2xl text-sm font-black text-brand-green bg-brand-green/5 border border-brand-green/10 flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">⚙️</span>
+                    Panel Administration
                   </Link>
                 )}
 
