@@ -45,6 +45,7 @@ export default function CheckoutPage() {
     address: user?.address || "",
     paymentMethod: "cod"
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Sync with user data when it loads
   useEffect(() => {
@@ -105,7 +106,6 @@ export default function CheckoutPage() {
     );
   }
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateStep = () => {
     const newErrors: Record<string, string> = {};
