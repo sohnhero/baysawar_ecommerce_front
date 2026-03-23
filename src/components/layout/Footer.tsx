@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Heart, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 
 const footerLinks = {
   Boutique: [
@@ -79,9 +80,14 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-green-light flex items-center justify-center text-white font-heading font-bold text-sm">
-                B
+            <Link href="/" className="flex items-center gap-3 mb-4 group">
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden transition-transform group-hover:scale-110">
+                <Image 
+                  src="/logo_baysawarr.jpg" 
+                  alt="Baysawarr Logo" 
+                  fill 
+                  className="object-contain"
+                />
               </div>
               <span className="font-heading font-bold text-lg">
                 Baysawarr

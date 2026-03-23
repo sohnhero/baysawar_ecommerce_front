@@ -143,9 +143,15 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 lg:gap-2.5 shrink-0 group">
-              <div className="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-gradient-to-br from-brand-green via-brand-green to-brand-green-dark flex items-center justify-center text-white font-heading font-black text-base lg:text-xl shadow-lg shadow-brand-green/20 group-hover:shadow-brand-green/40 transition-shadow">
-                B
+            <Link href="/" className="flex items-center gap-2 lg:gap-3 shrink-0 group">
+              <div className="relative w-10 h-10 lg:w-14 lg:h-14 rounded-lg overflow-hidden transition-transform group-hover:scale-105">
+                <Image 
+                  src="/logo_baysawarr.jpg" 
+                  alt="Baysawarr Logo" 
+                  fill 
+                  className="object-contain"
+                  priority
+                />
               </div>
               <div className="block">
                 <span className="font-heading font-black text-sm lg:text-2xl tracking-tight block leading-none">
@@ -521,46 +527,6 @@ export default function Header() {
                   Boutique
                 </Link>
 
-                <div className="px-5 py-4 text-[10px] font-black text-muted uppercase tracking-[0.2em] mt-2">
-                  Nos Univers
-                </div>
-                {navCategories.map((cat) => (
-                  <div key={cat.id} className="pb-2">
-                    <button
-                      className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-black hover:bg-surface transition-colors text-brand-blue border border-transparent hover:border-border-color"
-                      onClick={(e) => {
-                        const nextEl = (e.currentTarget.nextElementSibling as HTMLElement);
-                        nextEl.style.display = nextEl.style.display === 'none' ? 'block' : 'none';
-                      }}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-base">{cat.icon || "📦"}</span> 
-                        {cat.name}
-                      </span>
-                      <ChevronDown size={14} className="text-muted" />
-                    </button>
-                    <div className="pl-12 space-y-1 hidden pb-2">
-                      {cat.products?.map((sub: any) => (
-                        <Link
-                          key={sub.id}
-                          href={`/shop/${sub.id}`}
-                          onClick={() => setMobileOpen(false)}
-                          className="block px-3 py-2 text-[13px] text-muted hover:text-brand-green transition-colors font-bold flex items-center gap-2"
-                        >
-                          <span className="w-1 h-1 rounded-full bg-border-color" />
-                          {sub.name}
-                        </Link>
-                      ))}
-                      <Link
-                          href={`/shop?cat=${cat.slug}`}
-                          onClick={() => setMobileOpen(false)}
-                          className="block px-3 py-2.5 text-[10px] font-black text-brand-green uppercase tracking-widest mt-1 border-t border-dotted border-border-color"
-                        >
-                          Découvrir la collection →
-                        </Link>
-                    </div>
-                  </div>
-                ))}
 
                 <div className="px-5 py-4 text-[10px] font-black text-muted uppercase tracking-[0.2em] mt-2">
                   Mon Espace

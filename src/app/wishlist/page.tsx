@@ -63,7 +63,8 @@ export default function WishlistPage() {
     price: item.product.price,
     image: item.product.image,
     category: item.product.category,
-    rating: item.product.rating || 4.5
+    rating: item.product.rating || 4.5,
+    stock: item.product.stock
   }));
 
   return (
@@ -131,15 +132,26 @@ export default function WishlistPage() {
                   <p className="font-black text-xl mb-6">{product.price.toLocaleString()} FCFA</p>
                   
                   <button 
+                    disabled={product.stock <= 0}
                     onClick={() => addItem({
                       productId: product.id,
                       name: product.name,
                       price: product.price,
                       image: product.image
                     })}
-                    className="w-full py-4 bg-surface hover:bg-brand-green hover:text-white border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all"
+                    className={`w-full py-4 border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${
+                      product.stock <= 0 
+                        ? "bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200" 
+                        : "bg-surface hover:bg-brand-green hover:text-white"
+                    }`}
                   >
-                    <ShoppingCart size={18} /> Ajouter au panier
+                    {product.stock <= 0 ? (
+                      <>Rupture de stock</>
+                    ) : (
+                      <>
+                        <ShoppingCart size={18} /> Ajouter au panier
+                      </>
+                    )}
                   </button>
                 </div>
               </motion.div>

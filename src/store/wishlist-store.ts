@@ -12,6 +12,7 @@ export interface WishlistItem {
     image: string;
     category: any;
     rating: number;
+    stock: number;
   };
 }
 

@@ -52,7 +52,15 @@ export default function LoginPage() {
         
         <div className="relative z-10 w-full p-20 flex flex-col justify-between">
           <Link href="/" className="flex items-center gap-3">
-             <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-brand-blue font-black text-2xl shadow-2xl">B</div>
+             <div className="relative w-12 h-12 rounded-lg overflow-hidden transition-transform hover:scale-105">
+                <Image 
+                  src="/logo_baysawarr.jpg" 
+                  alt="Baysawarr Logo" 
+                  fill 
+                  className="object-contain"
+                  priority
+                />
+             </div>
              <span className="text-white font-heading font-black text-2xl tracking-tighter">Baysa<span className="text-brand-green">warr</span></span>
           </Link>
 

@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   LayoutGrid
 } from "lucide-react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/auth-store";
 import LogoutConfirmModal from "@/components/ui/LogoutConfirmModal";
@@ -83,8 +84,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         <div className="relative z-10 p-8">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-blue to-brand-blue-dark flex items-center justify-center text-white font-black text-xl shadow-xl shadow-brand-blue/30 group-hover:scale-110 transition-transform duration-500">
-              B
+            <div className="relative w-10 h-10 rounded-lg overflow-hidden transition-transform duration-500 group-hover:scale-110">
+              <Image 
+                src="/logo_baysawarr.jpg" 
+                alt="Baysawarr Logo" 
+                fill 
+                className="object-contain"
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-black text-lg tracking-tighter text-white leading-none">
@@ -241,9 +247,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="absolute top-0 left-0 bottom-0 w-80 bg-[#0f172a] shadow-[40px_0_80px_rgba(0,0,0,0.5)] flex flex-col pt-12"
             >
               <div className="px-10 mb-12 flex items-center justify-between">
-                <span className="font-heading font-black text-2xl tracking-tighter text-white">
-                  Baysa<span className="text-brand-green">warr</span>
-                </span>
+                <Link href="/" className="flex items-center gap-3">
+                  <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+                    <Image src="/logo_baysawarr.jpg" alt="Logo" fill className="object-contain" />
+                  </div>
+                  <span className="font-heading font-black text-2xl tracking-tighter text-white">
+                    Baysa<span className="text-brand-green">warr</span>
+                  </span>
+                </Link>
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-3 rounded-xl bg-white/5 text-slate-400 border border-white/5"
