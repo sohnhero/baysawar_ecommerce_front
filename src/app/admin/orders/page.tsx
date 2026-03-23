@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -116,7 +117,10 @@ export default function AdminOrdersPage() {
     date: new Date(o.createdAt).toLocaleDateString(),
     amount: parseFloat(o.totalAmount),
     status: o.status,
-    items: o.items
+    items: o.items,
+    phone: o.phone,
+    address: o.shippingAddress,
+    paymentMethod: o.paymentMethod
   }));
 
   const filteredOrders = orders.filter((order: any) => {
@@ -427,8 +431,8 @@ export default function AdminOrdersPage() {
                           </h4>
                           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                             <p className="font-black text-slate-900 text-xs">{selectedOrder.customer}</p>
-                            <p className="text-[10px] text-slate-500 font-medium mt-0.5">+221 77 123 45 67</p>
-                            <p className="text-[10px] font-bold text-slate-400 mt-2 leading-tight">Villa 12, Plateau, Dakar</p>
+                            <p className="text-[10px] text-slate-500 font-medium mt-0.5">{selectedOrder.phone || "Pas de numéro"}</p>
+                            <p className="text-[10px] font-bold text-slate-400 mt-2 leading-tight">{selectedOrder.address}</p>
                           </div>
                         </div>
 
@@ -438,9 +442,13 @@ export default function AdminOrdersPage() {
                           </h4>
                           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-brand-blue/5 rounded-lg flex items-center justify-center text-brand-blue font-black text-[10px]">OM</div>
+                              <div className="w-8 h-8 bg-brand-blue/5 rounded-lg flex items-center justify-center text-brand-blue font-black text-[10px]">
+                                {selectedOrder.paymentMethod?.toUpperCase() || "COD"}
+                              </div>
                               <div>
-                                <p className="text-xs font-black text-slate-900">Orange Money</p>
+                                <p className="text-xs font-black text-slate-900">
+                                  {selectedOrder.paymentMethod === 'om' ? 'Orange Money' : selectedOrder.paymentMethod === 'wave' ? 'Wave' : 'Paiement Livraison'}
+                                </p>
                                 <p className="text-[8px] text-emerald-600 font-black uppercase tracking-tight flex items-center gap-1">
                                   Confirmé
                                 </p>
@@ -456,7 +464,9 @@ export default function AdminOrdersPage() {
                           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-1.5">
                             <div className="flex items-center justify-between text-[10px] font-bold">
                               <span className="text-slate-400 uppercase tracking-widest">Articles</span>
-                              <span className="text-slate-900">{(selectedOrder.amount - 2500).toLocaleString()} FCFA</span>
+                              <span className="text-slate-900">
+                                {(selectedOrder.items?.reduce((acc: number, item: any) => acc + (parseFloat(item.price) * item.quantity), 0) || 0).toLocaleString()} FCFA
+                              </span>
                             </div>
                             <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                               <span className="text-[9px] font-black uppercase tracking-widest text-slate-900">Total</span>
@@ -470,18 +480,24 @@ export default function AdminOrdersPage() {
                   <div className="space-y-3">
                     <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Contenu</h4>
                     <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden divide-y divide-slate-50">
-                      <div className="p-4 flex items-center justify-between hover:bg-slate-50 transition-all">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-                            <Package size={18} className="text-slate-300" />
+                      {selectedOrder.items?.map((item: any, idx: number) => (
+                        <div key={item.id || idx} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
+                              {item.product?.image ? (
+                                <Image src={item.product.image} alt={item.product.name} width={48} height={48} className="object-cover" />
+                              ) : (
+                                <Package size={18} className="text-slate-300" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-heading font-black text-slate-900 uppercase text-[10px] tracking-tight">{item.product?.name || "Produit inconnu"}</p>
+                              <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Quantité: {item.quantity}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-heading font-black text-slate-900 uppercase text-[10px] tracking-tight">Panier Tressé Artisanal</p>
-                            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Quantité: 2</p>
-                          </div>
+                          <p className="font-black text-slate-900 text-xs">{parseFloat(item.price).toLocaleString()} FCFA</p>
                         </div>
-                        <p className="font-black text-slate-900 text-xs">12 450 FCFA</p>
-                      </div>
+                      ))}
                     </div>
                   </div>
 
