@@ -155,9 +155,9 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
 
           {/* Price */}
-          <div className="flex items-center gap-2">
-            <span className="font-heading font-bold text-lg">
-              {product.price.toLocaleString()} <span className="text-xs font-normal">FCFA</span>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="font-heading font-bold text-lg text-brand-green">
+              {product.price.toLocaleString()} <span className="text-[10px] font-bold text-muted uppercase">FCFA</span>
             </span>
             {product.originalPrice && (
               <span className="text-xs text-muted line-through">

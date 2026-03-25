@@ -380,8 +380,8 @@ export default function HomePage() {
                   viewport={{ once: true }}
                   className={`group bg-surface rounded-2xl border border-border-color overflow-hidden hover:border-brand-green/30 hover:shadow-xl transition-all ${!p.isLive ? 'opacity-90' : ''}`}
                 >
-                  <div className="flex gap-4 p-4">
-                    <Link href={`/shop/${p.id}`} className="relative w-28 h-28 rounded-xl overflow-hidden shrink-0 bg-white">
+                  <Link href={`/shop/${p.id}`} className="flex gap-4 p-4 h-full">
+                    <div className="relative w-28 h-28 rounded-xl overflow-hidden shrink-0 bg-white">
                       <Image
                         src={p.image}
                         alt={p.name}
@@ -398,17 +398,15 @@ export default function HomePage() {
                            Bientôt dispo
                         </span>
                       )}
-                    </Link>
+                    </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div>
                         <span className="text-[10px] text-brand-green font-semibold uppercase tracking-wide">
                           {p.category && typeof p.category === 'object' ? (p.category as any).name : p.category}
                         </span>
-                        <Link href={`/shop/${p.id}`}>
-                          <h3 className="font-heading font-semibold text-sm leading-tight mt-0.5 line-clamp-2 group-hover:text-brand-green transition-colors">
-                            {p.name}
-                          </h3>
-                        </Link>
+                        <h3 className="font-heading font-semibold text-sm leading-tight mt-0.5 line-clamp-2 group-hover:text-brand-green transition-colors">
+                          {p.name}
+                        </h3>
                         <div className="flex items-center gap-1 mt-1">
                           {[...Array(5)].map((_, i) => (
                             <Star
@@ -418,40 +416,44 @@ export default function HomePage() {
                                 i < Math.round(p.rating || 5)
                                   ? "fill-brand-gold text-brand-gold"
                                   : "text-border-color"
-                              }
+                                }
                             />
                           ))}
                           <span className="text-[10px] text-muted ml-0.5">({p.reviewCount || 0})</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div>
-                          <span className="font-heading font-bold text-base text-brand-green">
-                            {p.price.toLocaleString()}
-                          </span>
-                          <span className="text-[10px] text-muted ml-1">FCFA</span>
+                      <div className="flex flex-wrap items-end justify-between gap-2 mt-2">
+                        <div className="flex flex-col">
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-heading font-bold text-base text-brand-green">
+                              {p.price.toLocaleString()}
+                            </span>
+                            <span className="text-[10px] text-muted font-bold">FCFA</span>
+                          </div>
                           {p.originalPrice && (
-                            <span className="text-xs text-muted line-through ml-2">
-                              {p.originalPrice.toLocaleString()}
+                            <span className="text-[10px] text-muted line-through">
+                              {p.originalPrice.toLocaleString()} FCFA
                             </span>
                           )}
                         </div>
                         <button
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             addItem({
                               productId: p.id,
                               name: p.name,
                               price: p.price,
                               image: p.image,
-                            })
-                          }
-                          className="p-2 bg-brand-green hover:bg-brand-green-light text-white rounded-lg transition-colors"
+                            });
+                          }}
+                          className="p-2 bg-brand-green hover:bg-brand-green-light text-white rounded-lg transition-colors relative z-10"
                         >
                           <ShoppingCart size={14} />
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </motion.div>
               ))}
             </div>
