@@ -51,7 +51,7 @@ export default function Header() {
     setMounted(true);
     if (isAuthenticated) {
       fetchWishlist();
-      syncCart();
+      useCartStore.getState().onLogin();
     }
 
     // Fetch categories for the menu

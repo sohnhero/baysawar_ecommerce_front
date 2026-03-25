@@ -19,6 +19,7 @@ interface CartStore {
   clearCart: () => void;
   fetchCart: () => Promise<void>;
   syncCart: () => Promise<void>;
+  onLogin: () => Promise<void>;
   totalItems: () => number;
   totalPrice: () => number;
 }
@@ -103,7 +104,6 @@ export const useCartStore = create<CartStore>()(
           }));
           const data = await api.post<any[]>("/cart/sync", { items });
           
-          // Update local state with merged data from server
           const syncedItems: CartItem[] = data.map(item => ({
             productId: item.productId,
             name: item.product?.name || "Produit",
@@ -114,6 +114,46 @@ export const useCartStore = create<CartStore>()(
           set({ items: syncedItems });
         } catch (error) {
           console.error("Failed to sync cart:", error);
+        }
+      },
+
+      onLogin: async () => {
+        const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
+        if (!token) return;
+
+        try {
+          // 1. Fetch current server cart first
+          const serverData = await api.get<any[]>("/cart");
+          const serverItems: CartItem[] = serverData.map(item => ({
+            productId: item.productId,
+            name: item.product?.name || "Produit",
+            price: parseFloat(item.product?.price || "0"),
+            image: item.product?.image || "",
+            quantity: item.quantity,
+          }));
+
+          // 2. Merge with current local items (guest cart)
+          const localItems = get().items;
+          const mergedItems = [...serverItems];
+
+          localItems.forEach(local => {
+            const existing = mergedItems.find(m => m.productId === local.productId);
+            if (existing) {
+              existing.quantity = Math.max(existing.quantity, local.quantity);
+            } else {
+              mergedItems.push(local);
+            }
+          });
+
+          // 3. Update local state
+          set({ items: mergedItems });
+
+          // 4. Sync the merged result back to server to persist the guest items
+          if (mergedItems.length > 0) {
+            await get().syncCart();
+          }
+        } catch (error) {
+          console.error("Failed during cart login sync:", error);
         }
       },
 
