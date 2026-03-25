@@ -66,11 +66,11 @@ export default function AccountPage() {
     try {
       const res = await api.upload<{ url: string }>("/upload", file);
       const updatedUser = await api.put<any>("/users/profile", { image: res.url });
-      
+
       // Update store state
       const token = localStorage.getItem("baysawarr-token") || "";
       login(updatedUser, token);
-      
+
       toast.success("Photo de profil mise à jour");
     } catch (error) {
       console.error("Upload failed:", error);
@@ -101,7 +101,7 @@ export default function AccountPage() {
       <div className="bg-[#0f172a] text-white py-16 relative overflow-hidden">
         {/* Abstract Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-blue/20 rounded-full blur-[100px] -mr-48 -mt-48" />
-        
+
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative group">
@@ -117,7 +117,7 @@ export default function AccountPage() {
                   </div>
                 )}
               </div>
-              <label 
+              <label
                 className="absolute -bottom-2 -right-2 p-2 bg-brand-green text-white rounded-xl shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-all"
                 title="Changer la photo"
               >
@@ -130,7 +130,7 @@ export default function AccountPage() {
                 <h1 className="font-heading font-black text-3xl tracking-tight">{user?.name}</h1>
                 <CheckCircle2 size={18} className="text-brand-green" />
               </div>
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em]">Membre depuis le {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : "Avril 2026"}</p>
+              <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em]">Membre depuis  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : "Avril 2026"}</p>
             </div>
           </div>
         </div>
@@ -141,11 +141,10 @@ export default function AccountPage() {
         <div className="flex gap-1 bg-background rounded-xl border border-border-color p-1 mb-8 w-fit">
           <button
             onClick={() => setTab("profile")}
-            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === "profile"
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab === "profile"
                 ? "bg-brand-green text-white"
                 : "text-muted hover:text-foreground"
-            }`}
+              }`}
           >
             <span className="flex items-center gap-2">
               <User size={14} /> Profil
@@ -153,11 +152,10 @@ export default function AccountPage() {
           </button>
           <button
             onClick={() => setTab("orders")}
-            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === "orders"
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab === "orders"
                 ? "bg-brand-green text-white"
                 : "text-muted hover:text-foreground"
-            }`}
+              }`}
           >
             <span className="flex items-center gap-2">
               <Package size={14} /> Commandes
@@ -176,7 +174,7 @@ export default function AccountPage() {
               <h2 className="font-heading font-bold text-xl">
                 Informations personnelles
               </h2>
-              <button 
+              <button
                 onClick={() => {
                   setEditForm({
                     name: user?.name || "",
@@ -258,18 +256,17 @@ export default function AccountPage() {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center">
-                          <Package size={20} />
-                       </div>
-                       <div>
-                         <p className="font-heading font-black text-brand-blue uppercase tracking-tighter">#{order.id.substring(0,8).toUpperCase()}</p>
-                         <p className="text-[10px] text-muted font-black uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                       </div>
+                      <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center">
+                        <Package size={20} />
+                      </div>
+                      <div>
+                        <p className="font-heading font-black text-brand-blue uppercase tracking-tighter">#{order.id.substring(0, 8).toUpperCase()}</p>
+                        <p className="text-[10px] text-muted font-black uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                      </div>
                     </div>
                     <span
-                      className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border ${
-                        statusColors[order.status] || statusColors.pending
-                      }`}
+                      className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border ${statusColors[order.status] || statusColors.pending
+                        }`}
                     >
                       {statusLabels[order.status] || statusLabels.pending}
                     </span>
@@ -278,13 +275,13 @@ export default function AccountPage() {
                     {order.items.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between items-center text-sm">
                         <div className="flex items-center gap-4">
-                           <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-border-color bg-surface shrink-0">
-                             <Image src={item.product?.image} alt="" fill className="object-cover" sizes="48px" />
-                           </div>
-                           <div>
-                             <p className="font-bold text-slate-800 line-clamp-1">{item.product?.name || "Produit"}</p>
-                             <p className="text-xs text-muted font-bold tracking-widest">Quantité: {item.quantity}</p>
-                           </div>
+                          <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-border-color bg-surface shrink-0">
+                            <Image src={item.product?.image} alt="" fill className="object-cover" sizes="48px" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 line-clamp-1">{item.product?.name || "Produit"}</p>
+                            <p className="text-xs text-muted font-bold tracking-widest">Quantité: {item.quantity}</p>
+                          </div>
                         </div>
                         <span className="font-black text-brand-blue">
                           {(parseFloat(item.price) * item.quantity).toLocaleString()} FCFA
@@ -323,7 +320,7 @@ export default function AccountPage() {
               className="relative bg-white rounded-[40px] p-8 w-full max-w-md shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-bl-[100px] -z-0" />
-              
+
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-8">
                   <div>
@@ -347,7 +344,7 @@ export default function AccountPage() {
                         type="text"
                         required
                         value={editForm.name}
-                        onChange={e => setEditForm({...editForm, name: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                         className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-brand-green transition-all"
                       />
                     </div>
@@ -360,7 +357,7 @@ export default function AccountPage() {
                       <input
                         type="tel"
                         value={editForm.phone}
-                        onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
                         placeholder="+221 ..."
                         className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-brand-green transition-all"
                       />
@@ -374,7 +371,7 @@ export default function AccountPage() {
                       <textarea
                         rows={3}
                         value={editForm.address}
-                        onChange={e => setEditForm({...editForm, address: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, address: e.target.value })}
                         placeholder="Quartier, Rue, Porte..."
                         className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-brand-green transition-all resize-none"
                       />

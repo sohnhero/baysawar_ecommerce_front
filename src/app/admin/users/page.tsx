@@ -420,7 +420,7 @@ export default function AdminUsersPage() {
                   </div>
                   <div className="space-y-1.5">
                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                       <Calendar size={10} /> Membre depuis le
+                       <Calendar size={10} /> Membre depuis 
                     </p>
                     <p className="text-xs font-black text-slate-700">{new Date(selectedUser.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                   </div>
