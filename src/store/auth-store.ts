@@ -1,6 +1,8 @@
 "use client";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useCartStore } from "./cart-store";
+import { useWishlistStore } from "./wishlist-store";
 
 export type UserRole = "client" | "admin";
 
@@ -39,6 +41,8 @@ export const useAuthStore = create<AuthStore>()(
         if (typeof window !== "undefined") {
           localStorage.removeItem("baysawarr-token");
         }
+        useCartStore.getState().clearCart();
+        useWishlistStore.getState().clearWishlist();
         set({ user: null, token: null, isAuthenticated: false });
       },
     }),
