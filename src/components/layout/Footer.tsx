@@ -19,12 +19,6 @@ const footerLinks = {
     { label: "Blog", href: "/blog" },
     { label: "Carrières", href: "/careers" },
   ],
-  Support: [
-    { label: "FAQ", href: "/faq" },
-    { label: "Livraison", href: "/shipping" },
-    { label: "Retours", href: "/returns" },
-    { label: "Contact", href: "/contact" },
-  ],
 };
 
 export default function Footer() {
@@ -51,7 +45,7 @@ export default function Footer() {
             </div>
             <form onSubmit={handleSubscribe} className="flex w-full md:w-auto gap-2">
               {subscribed ? (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="flex items-center gap-2 px-6 py-3 bg-brand-green/10 text-brand-green rounded-xl text-sm font-bold border border-brand-green/20"
@@ -82,10 +76,10 @@ export default function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-3 mb-4 group">
               <div className="relative w-10 h-10 rounded-lg overflow-hidden transition-transform group-hover:scale-110">
-                <Image 
-                  src="/logo_baysawarr.jpg" 
-                  alt="Baysawarr Logo" 
-                  fill 
+                <Image
+                  src="/logo_baysawarr.jpg"
+                  alt="Baysawarr Logo"
+                  fill
                   className="object-contain"
                 />
               </div>
