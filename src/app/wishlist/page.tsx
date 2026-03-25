@@ -18,7 +18,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function WishlistPage() {
-  const addItem = useCartStore((s) => s.addItem);
+  const { addItem, addItems } = useCartStore();
   const { items, fetchWishlist, removeFromWishlist, loading } = useWishlistStore();
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
@@ -82,7 +82,15 @@ export default function WishlistPage() {
             <p className="text-muted text-sm">Retrouvez tous vos articles coup de cœur ici.</p>
           </div>
           {favorites.length > 0 && (
-            <button className="hidden md:flex items-center gap-2 px-6 py-3 bg-brand-blue text-white rounded-2xl font-bold text-sm shadow-xl shadow-brand-blue/20">
+            <button 
+              onClick={() => addItems(favorites.map(f => ({
+                productId: f.id,
+                name: f.name,
+                price: f.price,
+                image: f.image
+              })))}
+              className="hidden md:flex items-center gap-2 px-6 py-3 bg-brand-blue text-white rounded-2xl font-bold text-sm shadow-xl shadow-brand-blue/20"
+            >
               <ShoppingBag size={18} /> Tout ajouter au panier
             </button>
           )}

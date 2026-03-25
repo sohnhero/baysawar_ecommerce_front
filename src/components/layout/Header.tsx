@@ -40,7 +40,7 @@ export default function Header() {
   const [searchValue, setSearchValue] = useState("");
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  
+
   const { items: wishlistItems, fetchWishlist } = useWishlistStore();
   const [navCategories, setNavCategories] = useState<any[]>([]);
 
@@ -49,7 +49,7 @@ export default function Header() {
     if (isAuthenticated) {
       fetchWishlist();
     }
-    
+
     // Fetch categories for the menu
     const fetchMenuCategories = async () => {
       try {
@@ -95,7 +95,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-9">
           <div className="hidden sm:flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-white/70">
-              <Phone size={11} /> +221 33 800 00 00
+              <Phone size={11} /> +221 78 634 95 73
             </span>
             <span className="flex items-center gap-1.5 text-white/70">
               <MapPin size={11} /> Dakar, Sénégal
@@ -107,7 +107,7 @@ export default function Header() {
               animate={{ opacity: 1 }}
               className="text-white/90 font-medium"
             >
-              🚚 Livraison gratuite à partir de 25 000 FCFA
+              Commandez, recevez et soyez fier de nos produits
             </motion.p>
           </div>
           <div className="hidden sm:flex items-center gap-3">
@@ -124,11 +124,10 @@ export default function Header() {
 
       {/* ── MAIN HEADER ── */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-background/95 backdrop-blur-xl shadow-lg shadow-black/5"
-            : "bg-background"
-        } border-b border-border-color`}
+        className={`sticky top-0 z-50 transition-all duration-300 ${scrolled
+          ? "bg-background/95 backdrop-blur-xl shadow-lg shadow-black/5"
+          : "bg-background"
+          } border-b border-border-color`}
       >
         {/* Middle Row: Logo + Search + Icons */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -145,10 +144,10 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 lg:gap-3 shrink-0 group">
               <div className="relative w-10 h-10 lg:w-14 lg:h-14 rounded-lg overflow-hidden transition-transform group-hover:scale-105">
-                <Image 
-                  src="/logo_baysawarr.jpg" 
-                  alt="Baysawarr Logo" 
-                  fill 
+                <Image
+                  src="/logo_baysawarr.jpg"
+                  alt="Baysawarr Logo"
+                  fill
                   className="object-contain"
                   priority
                 />
@@ -204,7 +203,7 @@ export default function Header() {
               </button>
 
               {/* Account / Auth */}
-              <div 
+              <div
                 className="relative hidden sm:block"
                 onMouseEnter={() => setAccountOpen(true)}
                 onMouseLeave={() => setAccountOpen(false)}
@@ -247,7 +246,7 @@ export default function Header() {
                             <Link href="/account/orders" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors">
                               <Package size={18} className="text-muted" /> Mes commandes
                             </Link>
-                            <button 
+                            <button
                               onClick={handleWishlistClick}
                               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors text-left"
                             >
@@ -258,7 +257,7 @@ export default function Header() {
                                 <ClipboardList size={18} /> Panel Admin
                               </Link>
                             )}
-                            <button 
+                            <button
                               onClick={() => setShowLogoutConfirm(true)}
                               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-red-50 text-red-500 text-sm font-semibold transition-colors mt-1"
                             >
@@ -305,17 +304,16 @@ export default function Header() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center gap-0 h-12">
               {/* All Categories Button */}
-              <div 
+              <div
                 className="relative"
                 onMouseEnter={() => setMegaMenuOpen(true)}
                 onMouseLeave={() => setMegaMenuOpen(false)}
               >
                 <button
-                  className={`flex items-center gap-2 h-12 px-6 text-sm font-semibold transition-all -ml-4 rounded-none ${
-                    megaMenuOpen 
-                      ? "bg-brand-green-dark text-white" 
-                      : "bg-brand-green text-white hover:bg-brand-green-light"
-                  }`}
+                  className={`flex items-center gap-2 h-12 px-6 text-sm font-semibold transition-all -ml-4 rounded-none ${megaMenuOpen
+                    ? "bg-brand-green-dark text-white"
+                    : "bg-brand-green text-white hover:bg-brand-green-light"
+                    }`}
                 >
                   <Menu size={16} />
                   Toutes les Catégories
@@ -384,18 +382,18 @@ export default function Header() {
                           {navCategories.length > 0 && (
                             <div className="space-y-6">
                               {navCategories.slice(0, 1).map((cat) => (
-                                <Link 
-                                  key={cat.id} 
+                                <Link
+                                  key={cat.id}
                                   href={`/shop?cat=${cat.slug}`}
                                   onClick={() => setMegaMenuOpen(false)}
                                   className="group/feat block"
                                 >
                                   <div className="relative aspect-[4/5] rounded-[24px] overflow-hidden mb-4 shadow-xl shadow-black/5 border border-white/50">
                                     {cat.image ? (
-                                      <Image 
-                                        src={cat.image} 
-                                        alt={cat.name} 
-                                        fill 
+                                      <Image
+                                        src={cat.image}
+                                        alt={cat.name}
+                                        fill
                                         className="object-cover group-hover/feat:scale-110 transition-transform duration-700"
                                       />
                                     ) : (
@@ -418,14 +416,13 @@ export default function Header() {
                               ))}
                             </div>
                           )}
-                          
+
                           <div className="mt-auto pt-8">
                             <div className="bg-brand-blue rounded-[20px] p-5 text-white shadow-lg shadow-brand-blue/20 relative overflow-hidden group/card">
                               <div className="absolute -top-4 -right-4 w-12 h-12 bg-white/10 rounded-full blur-xl group-hover/card:scale-150 transition-transform duration-700" />
                               <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">Privilège</p>
-                              <p className="text-sm font-black tracking-tight mb-3">Livraison offerte dès 25k FCFA</p>
+                              <p className="text-sm font-black tracking-tight mb-3">Profitez de nos produits locaux d'excellente qualité</p>
                               <div className="h-px bg-white/10 w-full mb-3" />
-                              <Link href="/shop" onClick={() => setMegaMenuOpen(false)} className="text-[10px] font-black text-brand-green-light hover:underline uppercase tracking-widest">Voir conditions</Link>
                             </div>
                           </div>
                         </div>
@@ -463,8 +460,8 @@ export default function Header() {
 
               {/* Right-side promo */}
               <div className="ml-auto flex items-center gap-4">
-                <Link 
-                  href="/#flash-deals" 
+                <Link
+                  href="/#flash-deals"
                   className="text-xs text-brand-green font-semibold flex items-center gap-1.5 hover:text-brand-green-light transition-colors animate-pulse"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-green" />
@@ -518,7 +515,7 @@ export default function Header() {
               <nav className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
                 <Link href="/" onClick={() => setMobileOpen(false)}
                   className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color">
-                  <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">🏠</span> 
+                  <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">🏠</span>
                   Accueil
                 </Link>
                 <Link href="/shop" onClick={() => setMobileOpen(false)}
@@ -532,8 +529,8 @@ export default function Header() {
                   Mon Espace
                 </div>
                 {!isAuthenticated ? (
-                  <Link 
-                    href="/login" 
+                  <Link
+                    href="/login"
                     onClick={() => setMobileOpen(false)}
                     className="mx-4 flex items-center justify-between p-4 rounded-2xl bg-brand-green text-white shadow-lg shadow-brand-green/20"
                   >
@@ -549,8 +546,8 @@ export default function Header() {
                     <ArrowRight size={18} />
                   </Link>
                 ) : (
-                  <Link 
-                    href="/account" 
+                  <Link
+                    href="/account"
                     onClick={() => setMobileOpen(false)}
                     className="mx-4 flex items-center justify-between p-4 rounded-2xl bg-surface border border-border-color"
                   >
@@ -588,7 +585,7 @@ export default function Header() {
         </AnimatePresence>
       </header>
 
-      <LogoutConfirmModal 
+      <LogoutConfirmModal
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={() => {

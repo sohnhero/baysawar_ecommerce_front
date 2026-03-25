@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "Baysawarr — Artisanat & Produits Authentiques du Sénégal",
   description:
     "Découvrez les trésors du Sénégal. Artisanat premium, produits traditionnels et agro-alimentaire d'exception. Livraison dans le monde entier.",
+  icons: {
+    icon: "/logo_baysawarr.jpg",
+    shortcut: "/logo_baysawarr.jpg",
+    apple: "/logo_baysawarr.jpg",
+  },
 };
 
 import ClientLayoutWrapper from "@/components/layout/ClientLayoutWrapper";
