@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart,
@@ -46,12 +46,20 @@ export default function Header() {
   const fetchWishlist = useWishlistStore((s) => s.fetchWishlist);
   const { syncCart } = useCartStore();
   const [navCategories, setNavCategories] = useState<any[]>([]);
+  const loginSyncRef = useRef<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    if (isAuthenticated) {
-      fetchWishlist();
-      useCartStore.getState().onLogin();
+    if (isAuthenticated && user?.id) {
+      // Only trigger onLogin if it hasn't run for this user session
+      if (loginSyncRef.current !== user.id) {
+        loginSyncRef.current = user.id;
+        fetchWishlist();
+        useCartStore.getState().onLogin();
+      }
+    } else if (!isAuthenticated) {
+      // Reset ref on logout so it can trigger again on next login
+      loginSyncRef.current = null;
     }
 
     // Fetch categories for the menu
