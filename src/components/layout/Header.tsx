@@ -42,12 +42,14 @@ export default function Header() {
   const router = useRouter();
 
   const { items: wishlistItems, fetchWishlist } = useWishlistStore();
+  const { syncCart } = useCartStore();
   const [navCategories, setNavCategories] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
     if (isAuthenticated) {
       fetchWishlist();
+      syncCart();
     }
 
     // Fetch categories for the menu
@@ -60,7 +62,7 @@ export default function Header() {
       }
     };
     fetchMenuCategories();
-  }, [isAuthenticated, fetchWishlist]);
+  }, [isAuthenticated, fetchWishlist, syncCart]);
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
