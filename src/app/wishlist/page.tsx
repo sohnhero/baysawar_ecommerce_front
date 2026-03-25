@@ -7,8 +7,10 @@ import {
   Trash2, 
   ArrowLeft, 
   ShoppingBag,
-  Star
+  Star,
+  Loader2
 } from "lucide-react";
+import { toast } from "react-toastify";
 import Link from "next/link";
 import Image from "next/image";
 import { useWishlistStore } from "@/store/wishlist-store";
@@ -18,7 +20,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function WishlistPage() {
-  const { addItem, addItems } = useCartStore();
+  const addItem = useCartStore((s) => s.addItem);
   const { items, fetchWishlist, removeFromWishlist, loading } = useWishlistStore();
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
@@ -28,6 +30,32 @@ export default function WishlistPage() {
       fetchWishlist();
     }
   }, [fetchWishlist, isAuthenticated]);
+  
+  const handleAddAllToCart = () => {
+    if (favorites.length === 0) return;
+    
+    let addedCount = 0;
+    favorites.forEach(product => {
+      if (product.stock > 0) {
+        addItem({
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image
+        });
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      toast.success(`${addedCount} articles ajoutés au panier !`, {
+        icon: <ShoppingBag size={18} className="text-brand-blue" />,
+        className: "rounded-2xl font-semibold text-xs shadow-xl",
+      });
+    } else {
+      toast.warn("Aucun article en stock à ajouter.");
+    }
+  };
 
   if (!isAuthenticated) {
     return (
@@ -82,17 +110,16 @@ export default function WishlistPage() {
             <p className="text-muted text-sm">Retrouvez tous vos articles coup de cœur ici.</p>
           </div>
           {favorites.length > 0 && (
-            <button 
-              onClick={() => addItems(favorites.map(f => ({
-                productId: f.id,
-                name: f.name,
-                price: f.price,
-                image: f.image
-              })))}
-              className="hidden md:flex items-center gap-2 px-6 py-3 bg-brand-blue text-white rounded-2xl font-bold text-sm shadow-xl shadow-brand-blue/20"
-            >
-              <ShoppingBag size={18} /> Tout ajouter au panier
-            </button>
+            <div className="flex gap-4">
+              <button 
+                onClick={handleAddAllToCart}
+                className="flex items-center gap-2 px-6 py-3 bg-brand-blue text-white rounded-2xl font-bold text-sm shadow-xl shadow-brand-blue/20 hover:bg-brand-blue-dark transition-all active:scale-95"
+              >
+                <ShoppingBag size={18} /> 
+                <span className="hidden sm:inline">Tout ajouter au panier</span>
+                <span className="sm:hidden">Tout ajouter</span>
+              </button>
+            </div>
           )}
         </div>
 
