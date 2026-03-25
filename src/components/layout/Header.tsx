@@ -32,7 +32,8 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const totalItems = useCartStore((s: any) => s.totalItems());
+  const totalItems = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
+  const totalPrice = useCartStore((s) => s.items.reduce((sum, i) => sum + i.price * i.quantity, 0));
   const { isDark, toggle } = useThemeStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [accountOpen, setAccountOpen] = useState(false);
@@ -41,7 +42,8 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-  const { items: wishlistItems, fetchWishlist } = useWishlistStore();
+  const wishlistItems = useWishlistStore((s) => s.items);
+  const fetchWishlist = useWishlistStore((s) => s.fetchWishlist);
   const { syncCart } = useCartStore();
   const [navCategories, setNavCategories] = useState<any[]>([]);
 
@@ -293,7 +295,7 @@ export default function Header() {
                 <div className="hidden xl:block text-left">
                   <p className="text-[10px] text-muted leading-none">Mon Panier</p>
                   <p className="text-xs font-bold text-brand-green leading-tight">
-                    {mounted ? useCartStore.getState().totalPrice().toLocaleString() : 0} FCFA
+                    {mounted ? totalPrice.toLocaleString() : 0} FCFA
                   </p>
                 </div>
               </Link>

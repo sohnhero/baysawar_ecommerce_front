@@ -38,11 +38,13 @@ export const useAuthStore = create<AuthStore>()(
         set({ user, token, isAuthenticated: true });
       },
       logout: () => {
+        // Clear local UI state first so the changes are immediate
+        useCartStore.setState({ items: [] });
+        useWishlistStore.setState({ items: [] });
+        
         if (typeof window !== "undefined") {
           localStorage.removeItem("baysawarr-token");
         }
-        useCartStore.getState().clearCart();
-        useWishlistStore.getState().clearWishlist();
         set({ user: null, token: null, isAuthenticated: false });
       },
     }),
