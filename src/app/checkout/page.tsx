@@ -20,7 +20,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { api } from "@/lib/api";
 
-const steps = ["Livraison", "Expédition", "Paiement", "Succès"];
+const steps = ["Livraison", "Expédition", "Paiement", "Récapitulatif", "Succès"];
 
 const deliveryMethods = [
   { id: "std", name: "Standard (Dakar)", price: 2000, time: "24-48h" },
@@ -157,7 +157,7 @@ export default function CheckoutPage() {
       const result = await api.post<any>("/orders", orderData);
       setOrderId(result.id);
       clearCart();
-      setStep(3);
+      setStep(4);
     } catch (error: any) {
       console.error("Failed to create order:", error);
       const message = error.message || "Une erreur est survenue lors de la création de la commande.";
@@ -379,18 +379,86 @@ export default function CheckoutPage() {
                   <div className="flex gap-4 mt-10">
                     <button onClick={handlePrev} className="px-8 py-5 border border-border-color rounded-2xl font-bold text-muted hover:bg-surface transition-all">Retour</button>
                     <button 
-                      onClick={handleConfirm} 
-                      disabled={loading}
-                      className="flex-1 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                      onClick={handleNext} 
+                      className="flex-1 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3 shadow-xl"
                     >
-                      {loading ? "Création..." : "Confirmer la commande"} <Check size={18} />
+                      Vérifier la commande <ArrowRight size={18} />
                     </button>
                   </div>
                 </motion.div>
               )}
 
-              {/* Step 3: Success */}
+              {/* Step 3: Recap/Review */}
               {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-background rounded-[32px] border border-border-color p-8 shadow-sm"
+                >
+                  <h2 className="font-heading font-black text-2xl mb-8 flex items-center gap-3">
+                    <Check className="text-brand-green" /> Récapitulatif
+                  </h2>
+                  
+                  <div className="space-y-6">
+                    <div className="p-6 rounded-2xl bg-surface border border-border-color">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-muted">Informations personnelles</h3>
+                        <button onClick={() => setStep(0)} className="text-[10px] font-black text-brand-blue uppercase hover:underline">Modifier</button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] text-muted font-bold uppercase mb-1">Nom</p>
+                          <p className="text-sm font-bold">{formData.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted font-bold uppercase mb-1">Téléphone</p>
+                          <p className="text-sm font-bold">{formData.phone}</p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-[10px] text-muted font-bold uppercase mb-1">Adresse de livraison</p>
+                          <p className="text-sm font-bold">{formData.address}, {formData.city}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-6 rounded-2xl bg-surface border border-border-color">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-muted">Expédition & Paiement</h3>
+                        <div className="flex gap-4">
+                          <button onClick={() => setStep(1)} className="text-[10px] font-black text-brand-blue uppercase hover:underline">Livraison</button>
+                          <button onClick={() => setStep(2)} className="text-[10px] font-black text-brand-blue uppercase hover:underline">Paiement</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] text-muted font-bold uppercase mb-1">Mode d&apos;expédition</p>
+                          <p className="text-sm font-bold">{deliveryMethod?.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted font-bold uppercase mb-1">Méthode de paiement</p>
+                          <p className="text-sm font-bold uppercase">{formData.paymentMethod === 'cod' ? 'Paiement à la livraison' : formData.paymentMethod}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 mt-10">
+                    <button onClick={handlePrev} className="px-8 py-5 border border-border-color rounded-2xl font-bold text-muted hover:bg-surface transition-all">Retour</button>
+                    <button 
+                      onClick={handleConfirm} 
+                      disabled={loading}
+                      className="flex-1 py-5 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-green/20 hover:bg-brand-green-light transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {loading ? "Traitement..." : "Confirmer ma commande"} <Check size={18} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 4: Success */}
+              {step === 4 && (
                 <motion.div
                   key="step3"
                   initial={{ scale: 0.9, opacity: 0 }}
@@ -416,7 +484,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Sidebar Summary */}
-          {step < 3 && (
+          {step < 4 && (
             <div className="h-fit">
               <div className="bg-background rounded-[32px] border border-border-color p-8 shadow-sm">
                 <h3 className="font-heading font-black text-xl mb-6">Récapitulatif</h3>

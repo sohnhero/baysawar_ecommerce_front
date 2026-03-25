@@ -579,6 +579,21 @@ export default function Header() {
                   {isDark ? <Sun size={16} /> : <Moon size={16} />}
                   {isDark ? "Mode clair" : "Mode sombre"}
                 </button>
+
+                {isAuthenticated && (
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setShowLogoutConfirm(true);
+                    }}
+                    className="w-full text-left px-4 py-4 mt-4 rounded-2xl text-sm font-black text-rose-500 bg-rose-50 border border-rose-100 flex items-center gap-3"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center text-base">
+                      <LogOut size={18} />
+                    </span>
+                    Déconnexion
+                  </button>
+                )}
               </nav>
             </motion.div>
           )}

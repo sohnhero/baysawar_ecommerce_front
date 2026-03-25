@@ -43,6 +43,18 @@ export default function ClientOrdersPage() {
     fetchOrders();
   }, []);
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) return;
+
+    try {
+      await api.patch(`/orders/my/${orderId}/cancel`, {});
+      const data = await api.get<any[]>("/orders/my");
+      setOrders(data);
+    } catch (error: any) {
+      console.error("Failed to cancel order:", error);
+    }
+  };
+
   const getOrderStatus = (orderId: string): any => {
     const order = orders.find(o => o.id === orderId);
     return order?.status || "processing";
@@ -135,6 +147,14 @@ export default function ClientOrdersPage() {
                     <button className="w-full py-3 border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-surface transition-all">
                       Facture PDF
                     </button>
+                    {order.status === "pending" && (
+                      <button
+                        onClick={() => handleCancelOrder(order.id)}
+                        className="w-full py-3 bg-red-50 text-red-500 border border-red-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all mt-1"
+                      >
+                        Annuler la commande
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
