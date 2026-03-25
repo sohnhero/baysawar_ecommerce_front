@@ -102,7 +102,9 @@ export const useCartStore = create<CartStore>()(
             productId: i.productId,
             quantity: i.quantity
           }));
+          console.log(`[CartStore] Syncing ${items.length} items to server...`);
           const data = await api.post<any[]>("/cart/sync", { items });
+          console.log(`[CartStore] Sync response received: ${data.length} items on server`);
           
           const syncedItems: CartItem[] = data.map(item => ({
             productId: item.productId,
@@ -119,11 +121,15 @@ export const useCartStore = create<CartStore>()(
 
       onLogin: async () => {
         const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
+        console.log("[CartStore] onLogin triggered, token present:", !!token);
         if (!token) return;
 
         try {
           // 1. Fetch current server cart first
+          console.log("[CartStore] Fetching server cart...");
           const serverData = await api.get<any[]>("/cart");
+          console.log("[CartStore] Server cart items received:", serverData.length);
+          
           const serverItems: CartItem[] = serverData.map(item => ({
             productId: item.productId,
             name: item.product?.name || "Produit",
@@ -134,22 +140,27 @@ export const useCartStore = create<CartStore>()(
 
           // 2. Merge with current local items (guest cart)
           const localItems = get().items;
+          console.log("[CartStore] Local items (guest cart):", localItems.length);
           const mergedItems = [...serverItems];
 
           localItems.forEach(local => {
             const existing = mergedItems.find(m => m.productId === local.productId);
             if (existing) {
+              console.log(`[CartStore] Merging item ${local.productId}, local qty ${local.quantity}, server qty ${existing.quantity}`);
               existing.quantity = Math.max(existing.quantity, local.quantity);
             } else {
+              console.log(`[CartStore] Adding guest item ${local.productId} to account cart`);
               mergedItems.push(local);
             }
           });
 
           // 3. Update local state
+          console.log("[CartStore] Final merged items count:", mergedItems.length);
           set({ items: mergedItems });
 
           // 4. Sync the merged result back to server to persist the guest items
           if (mergedItems.length > 0) {
+            console.log("[CartStore] Syncing merged cart back to server...");
             await get().syncCart();
           }
         } catch (error) {
