@@ -204,11 +204,11 @@ export default function Header() {
 
               <button
                 onClick={handleWishlistClick}
-                className="hidden sm:flex p-2.5 rounded-xl hover:bg-surface transition-colors relative"
+                className="flex p-2 rounded-xl hover:bg-surface transition-colors relative"
               >
-                <Heart size={20} />
+                <Heart size={20} className="sm:w-[22px] sm:h-[22px]" />
                 {mounted && wishlistItems.length > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute top-0 right-0 sm:-top-0.5 sm:-right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                     {wishlistItems.length}
                   </span>
                 )}
@@ -534,6 +534,11 @@ export default function Header() {
                   className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color">
                   <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">🛍️</span>
                   Boutique
+                </Link>
+                <Link href="/wishlist" onClick={(e) => { handleWishlistClick(e as any); setMobileOpen(false); }}
+                  className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color">
+                  <span className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center text-base">❤️</span>
+                  Ma Liste de Souhaits
                 </Link>
 
 
