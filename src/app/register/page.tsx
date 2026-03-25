@@ -13,6 +13,8 @@ import { api } from "@/lib/api";
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      await api.post("/auth/register", { name, email, password });
+      await api.post("/auth/register", { name, email, password, phone, address });
       toast.success("Compte créé avec succès ! Veuillez vous connecter.");
       router.push("/login?registered=true");
     } catch (err: any) {
@@ -163,19 +165,37 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="md:col-span-2 space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Téléphone</label>
               <div className="relative group">
                 <Phone size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
                   type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   placeholder="+221 ..."
                   className="w-full pl-14 pr-8 py-3.5 rounded-[22px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="md:col-span-2 space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse de livraison</label>
+              <div className="relative group">
+                <Mail size={18} className="absolute left-6 top-6 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                <textarea
+                  required
+                  rows={2}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Ex: Sacré-Cœur, Villa 123, Dakar"
+                  className="w-full pl-14 pr-8 py-3.5 rounded-[22px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Mot de Passe</label>
               <div className="relative group">
                 <Lock size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />

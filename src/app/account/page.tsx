@@ -205,7 +205,7 @@ export default function AccountPage() {
                   <p className="text-sm font-bold text-slate-800">{user?.email || "Chargement..."}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-surface rounded-xl opacity-50">
+              <div className="flex items-center gap-3 p-4 bg-surface rounded-xl">
                 <Phone size={18} className="text-muted" />
                 <div>
                   <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-0.5">Téléphone</p>
