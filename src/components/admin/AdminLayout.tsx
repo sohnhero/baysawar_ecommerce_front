@@ -203,11 +203,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               
               <div className="flex items-center gap-2 sm:gap-3">
-                <button className="p-3 lg:p-4 rounded-2xl bg-white shadow-xl shadow-slate-900/5 text-slate-400 hover:text-brand-blue hover:scale-110 active:scale-95 transition-all relative group">
-                  <Bell size={18} className="lg:size-5" />
-                  <span className="absolute top-3 right-3 lg:top-4 lg:right-4 w-2 h-2 lg:w-2.5 lg:h-2.5 bg-rose-500 rounded-full border-[2px] lg:border-[3px] border-white ring-2 ring-rose-500/20" />
-                </button>
-                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 shadow-xl shadow-slate-900/5 p-1">
+              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 shadow-xl shadow-slate-900/5 p-1">
                   <div className="w-full h-full rounded-xl bg-gradient-to-br from-brand-blue to-teal-500 flex items-center justify-center text-white font-black text-[10px] lg:text-xs">
                     {user?.name[0] || "A"}
                   </div>

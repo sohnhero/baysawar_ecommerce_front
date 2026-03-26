@@ -14,6 +14,7 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItems: (items: Omit<CartItem, "quantity">[]) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -42,6 +43,25 @@ export const useCartStore = create<CartStore>()(
             };
           }
           return { items: [...state.items, { ...item, quantity: 1 }] };
+        });
+        get().syncCart();
+      },
+
+      addItems: (newItems) => {
+        set((state) => {
+          const updatedItems = [...state.items];
+          newItems.forEach((item) => {
+            const index = updatedItems.findIndex((i) => i.productId === item.productId);
+            if (index !== -1) {
+              updatedItems[index] = {
+                ...updatedItems[index],
+                quantity: updatedItems[index].quantity + 1,
+              };
+            } else {
+              updatedItems.push({ ...item, quantity: 1 });
+            }
+          });
+          return { items: updatedItems };
         });
         get().syncCart();
       },
@@ -122,7 +142,6 @@ export const useCartStore = create<CartStore>()(
         if (!token) return;
 
         try {
-          // 1. Fetch current server cart first
           const serverData = await api.get<any[]>("/cart");
           
           const serverItems: CartItem[] = serverData.map(item => ({
@@ -133,7 +152,6 @@ export const useCartStore = create<CartStore>()(
             quantity: item.quantity,
           }));
 
-          // 2. Merge with current local items (guest cart)
           const localItems = get().items;
           const mergedItems = [...serverItems];
 
@@ -146,10 +164,8 @@ export const useCartStore = create<CartStore>()(
             }
           });
 
-          // 3. Update local state
           set({ items: mergedItems });
 
-          // 4. Sync the merged result back to server to persist the guest items
           if (mergedItems.length > 0) {
             await get().syncCart();
           }

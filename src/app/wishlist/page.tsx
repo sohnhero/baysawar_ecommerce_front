@@ -32,29 +32,24 @@ export default function WishlistPage() {
   }, [fetchWishlist, isAuthenticated]);
   
   const handleAddAllToCart = () => {
-    if (favorites.length === 0) return;
-    
-    let addedCount = 0;
-    favorites.forEach(product => {
-      if (product.stock > 0) {
-        addItem({
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image
-        });
-        addedCount++;
-      }
-    });
+    const itemsToAdd = favorites.filter(p => p.stock > 0).map(p => ({
+      productId: p.id,
+      name: p.name,
+      price: p.price,
+      image: p.image
+    }));
 
-    if (addedCount > 0) {
-      toast.success(`${addedCount} articles ajoutés au panier !`, {
-        icon: <ShoppingBag size={18} className="text-brand-blue" />,
-        className: "rounded-2xl font-semibold text-xs shadow-xl",
-      });
-    } else {
+    if (itemsToAdd.length === 0) {
       toast.warn("Aucun article en stock à ajouter.");
+      return;
     }
+
+    useCartStore.getState().addItems(itemsToAdd);
+
+    toast.success(`${itemsToAdd.length} articles ajoutés au panier !`, {
+      icon: <ShoppingBag size={18} className="text-brand-blue" />,
+      className: "rounded-2xl font-semibold text-xs shadow-xl",
+    });
   };
 
   if (!isAuthenticated) {

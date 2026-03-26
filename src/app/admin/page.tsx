@@ -36,6 +36,8 @@ import {
   Pie, 
   Cell 
 } from 'recharts';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const iconMap: Record<string, React.ReactElement> = {
   revenue: <DollarSign size={22} />,
@@ -85,6 +87,93 @@ export default function AdminPage() {
     }
   };
 
+  const handleExportReport = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // 1. Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42); // slate-900
+    doc.text("BAYSAWARR", 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text("RAPPORT DE PERFORMANCE ADMINISTRATIF", 14, 28);
+    doc.text(`Periode: ${timeRange.toUpperCase()}`, 14, 33);
+    doc.text(`Genere le: ${new Date().toLocaleString('fr-FR')}`, 14, 38);
+
+    doc.setDrawColor(226, 232, 240); // slate-200
+    doc.line(14, 45, pageWidth - 14, 45);
+
+    // 2. Metrics Section
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Indicateurs Cles", 14, 55);
+
+    autoTable(doc, {
+      startY: 60,
+      head: [['Indicateur', 'Valeur']],
+      body: stats.map(s => [s.label, s.value]),
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold' }, // brand-blue
+      styles: { fontSize: 10, cellPadding: 5 }
+    });
+
+    // 3. Top Products Section (if available)
+    if (topProducts.length > 0) {
+      doc.setFontSize(14);
+      const lastY = (doc as any).lastAutoTable.finalY + 15;
+      doc.text("Top Produits Performance", 14, lastY);
+
+      autoTable(doc, {
+        startY: lastY + 5,
+        head: [['Produit', 'Ventes', 'Revenus']],
+        body: topProducts.map(p => [p.name, p.sales.toString(), `${p.revenue.toLocaleString()} FCFA`]),
+        theme: 'striped',
+        headStyles: { fillColor: [16, 185, 129] }, // brand-green
+      });
+    }
+
+    // 4. Recent Orders Section
+    const lastY2 = (doc as any).lastAutoTable.finalY + 15;
+    if (lastY2 > 240) doc.addPage();
+    
+    doc.setFontSize(14);
+    doc.text("Dernieres Commandes", 14, lastY2 > 240 ? 20 : lastY2);
+
+    autoTable(doc, {
+      startY: lastY2 > 240 ? 25 : lastY2 + 5,
+      head: [['ID', 'Client', 'Montant', 'Date', 'Statut']],
+      body: orders.map(o => [
+        `#${o.id.slice(-8)}`.toUpperCase(),
+        o.customer,
+        `${o.amount.toLocaleString()} FCFA`,
+        o.date,
+        o.status.toUpperCase()
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [15, 23, 42] }, // slate-900
+    });
+
+    // 5. Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Page ${i} sur ${pageCount} - Baysawarr Business Intelligence`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: "center" }
+      );
+    }
+
+    // 6. Save
+    doc.save(`rapport_baysawarr_${timeRange}_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
   useEffect(() => {
     fetchStats();
   }, [timeRange]);
@@ -119,7 +208,10 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
-            <button className="flex items-center gap-2 px-4 py-3 bg-brand-blue text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-blue/10">
+            <button 
+              onClick={handleExportReport}
+              className="flex items-center gap-2 px-4 py-3 bg-brand-blue text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-blue/10"
+            >
               <Download size={14} /> Rapport
             </button>
           </div>
