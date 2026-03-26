@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
+import { toast } from "react-toastify";
+import { generateUsersReport, generateUsersCSV } from "@/lib/reports";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -67,8 +69,20 @@ export default function AdminUsersPage() {
       await api.delete(`/users/${id}`);
       setDeleteId(null);
       fetchData();
+      toast.success("Utilisateur supprimé");
     } catch (error) {
       console.error("Failed to delete user:", error);
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
+  const handleExportReport = () => {
+    try {
+      generateUsersReport(users);
+      toast.success("Liste des membres générée (PDF)");
+    } catch (error) {
+      console.error("Export Error:", error);
+      toast.error("Erreur lors de l'exportation");
     }
   };
 
@@ -92,8 +106,24 @@ export default function AdminUsersPage() {
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none">Gestion des membres de la plateforme</p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
-              <Download size={14} /> Export CSV
+            <button 
+              onClick={handleExportReport}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
+            >
+              <Download size={14} /> Rapport PDF
+            </button>
+            <button 
+              onClick={() => {
+                try {
+                  generateUsersCSV(users);
+                  toast.success("Données exportées (CSV)");
+                } catch (e) {
+                  toast.error("Erreur CSV");
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white border border-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-sm"
+            >
+              <Download size={14} /> CSV
             </button>
           </div>
         </div>

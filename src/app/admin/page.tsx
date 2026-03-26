@@ -36,9 +36,8 @@ import {
   Pie, 
   Cell 
 } from 'recharts';
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { toast } from "react-toastify";
+import { generateDashboardReport } from "@/lib/reports";
 
 const iconMap: Record<string, React.ReactElement> = {
   revenue: <DollarSign size={22} />,
@@ -95,94 +94,15 @@ export default function AdminPage() {
     });
 
     try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-
-      // 1. Header
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.setTextColor(15, 23, 42); // slate-900
-      doc.text("BAYSAWARR", 14, 22);
+      // Create a simplified stats object for the report
+      const reportStats = {
+        totalRevenue: stats.find((s: any) => s.icon === "revenue")?.value || "0",
+        totalOrders: stats.find((s: any) => s.icon === "orders")?.value || "0",
+        totalUsers: stats.find((s: any) => s.icon === "visitors")?.value || "0",
+        totalProducts: stats.find((s: any) => s.icon === "products")?.value || "0",
+      };
       
-      doc.setFontSize(10);
-      doc.setTextColor(100, 116, 139); // slate-500
-      doc.text("RAPPORT DE PERFORMANCE ADMINISTRATIF", 14, 28);
-      doc.text(`Periode: ${timeRange.toUpperCase()}`, 14, 33);
-      doc.text(`Genere le: ${new Date().toLocaleString('fr-FR')}`, 14, 38);
-
-      doc.setDrawColor(226, 232, 240); // slate-200
-      doc.line(14, 45, pageWidth - 14, 45);
-
-      // 2. Metrics Section
-      doc.setFontSize(14);
-      doc.setTextColor(15, 23, 42);
-      doc.text("Indicateurs Cles", 14, 55);
-
-      autoTable(doc, {
-        startY: 60,
-        head: [['Indicateur', 'Valeur']],
-        body: stats.map(s => [s.label, s.value]),
-        theme: 'grid',
-        headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold' }, // brand-blue
-        styles: { fontSize: 10, cellPadding: 5 }
-      });
-
-      let currentY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY : 100;
-
-      // 3. Top Products Section (if available)
-      if (topProducts.length > 0) {
-        doc.setFontSize(14);
-        currentY += 15;
-        if (currentY > 250) { doc.addPage(); currentY = 20; }
-        doc.text("Top Produits Performance", 14, currentY);
-
-        autoTable(doc, {
-          startY: currentY + 5,
-          head: [['Produit', 'Ventes', 'Revenus']],
-          body: topProducts.map(p => [p.name || "Inconnu", (p.sales || 0).toString(), `${(p.revenue || 0).toLocaleString()} FCFA`]),
-          theme: 'striped',
-          headStyles: { fillColor: [16, 185, 129] }, // brand-green
-        });
-        currentY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY : currentY + 40;
-      }
-
-      // 4. Recent Orders Section
-      currentY += 15;
-      if (currentY > 250) { doc.addPage(); currentY = 20; }
-      
-      doc.setFontSize(14);
-      doc.text("Dernieres Commandes", 14, currentY);
-
-      autoTable(doc, {
-        startY: currentY + 5,
-        head: [['ID', 'Client', 'Montant', 'Date', 'Statut']],
-        body: orders.map(o => [
-          `#${(o.id || "").slice(-8)}`.toUpperCase(),
-          o.customer || "Anonyme",
-          `${(o.amount || 0).toLocaleString()} FCFA`,
-          o.date || "N/A",
-          (o.status || "N/A").toUpperCase()
-        ]),
-        theme: 'striped',
-        headStyles: { fillColor: [15, 23, 42] }, // slate-900
-      });
-
-      // 5. Footer
-      const pageCount = (doc as any).internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(
-          `Page ${i} sur ${pageCount} - Baysawarr Business Intelligence`,
-          pageWidth / 2,
-          doc.internal.pageSize.getHeight() - 10,
-          { align: "center" }
-        );
-      }
-
-      // 6. Save
-      doc.save(`rapport_baysawarr_${timeRange}_${new Date().toISOString().slice(0,10)}.pdf`);
+      generateDashboardReport(reportStats, topProducts, orders, timeRange);
       toast.success("Rapport exporté avec succès !");
     } catch (error) {
       console.error("Export Error:", error);

@@ -27,8 +27,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { toast } from "react-toastify";
 import { api } from "@/lib/api";
 import { useEffect, useRef } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { generateProductsReport } from "@/lib/reports";
 
 export default function AdminProductsPage() {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
@@ -165,32 +164,7 @@ export default function AdminProductsPage() {
     });
 
     try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.text("CATALOGUE PRODUITS - BAYSAWARR", 14, 20);
-      
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Généré le: ${new Date().toLocaleString('fr-FR')}`, 14, 28);
-      doc.text(`Total produits: ${dbProducts.length}`, 14, 33);
-
-      autoTable(doc, {
-        startY: 40,
-        head: [['ID', 'Nom', 'Catégorie', 'Prix', 'Stock']],
-        body: dbProducts.map(p => [
-          p.id.slice(0, 8).toUpperCase(),
-          p.name,
-          typeof p.category === 'object' ? p.category.name : p.category,
-          `${p.price.toLocaleString()} FCFA`,
-          p.stock.toString()
-        ]),
-        headStyles: { fillColor: [59, 130, 246] },
-      });
-
-      doc.save(`catalogue_produits_${new Date().toISOString().slice(0,10)}.pdf`);
+      generateProductsReport(dbProducts);
       toast.success("Catalogue exporté !");
     } catch (error) {
       console.error("Export Error:", error);

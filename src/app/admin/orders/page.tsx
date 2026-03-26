@@ -28,6 +28,8 @@ import {
 import { recentOrders as initialOrders, RecentOrder } from "@/data/admin-stats";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
+import { toast } from "react-toastify";
+import { generateOrdersReport } from "@/lib/reports";
 
 const statusConfig: Record<string, any> = {
   pending: {
@@ -110,6 +112,16 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleExportReport = () => {
+    try {
+      generateOrdersReport(dbOrders);
+      toast.success("Rapport des commandes généré");
+    } catch (error) {
+      console.error("Export Error:", error);
+      toast.error("Erreur lors de la génération du rapport");
+    }
+  };
+
   const orders = dbOrders.map(o => ({
     dbId: o.id,
     id: o.id.substring(0, 8).toUpperCase(),
@@ -155,7 +167,10 @@ export default function AdminOrdersPage() {
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
               <Filter size={14} /> Filtres
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-blue/10">
+            <button 
+              onClick={handleExportReport}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-blue/10"
+            >
               <Download size={14} /> Rapport
             </button>
           </div>

@@ -31,26 +31,6 @@ export default function WishlistPage() {
     }
   }, [fetchWishlist, isAuthenticated]);
   
-  const handleAddAllToCart = () => {
-    const itemsToAdd = favorites.filter(p => p.stock > 0).map(p => ({
-      productId: p.id,
-      name: p.name,
-      price: p.price,
-      image: p.image
-    }));
-
-    if (itemsToAdd.length === 0) {
-      toast.warn("Aucun article en stock à ajouter.");
-      return;
-    }
-
-    useCartStore.getState().addItems(itemsToAdd);
-
-    toast.success(`${itemsToAdd.length} articles ajoutés au panier !`, {
-      icon: <ShoppingBag size={18} className="text-brand-blue" />,
-      className: "rounded-2xl font-semibold text-xs shadow-xl",
-    });
-  };
 
   if (!isAuthenticated) {
     return (
@@ -104,18 +84,6 @@ export default function WishlistPage() {
             </h1>
             <p className="text-muted text-sm">Retrouvez tous vos articles coup de cœur ici.</p>
           </div>
-          {favorites.length > 0 && (
-            <div className="flex gap-4">
-              <button 
-                onClick={handleAddAllToCart}
-                className="flex items-center gap-2 px-6 py-3 bg-brand-blue text-white rounded-2xl font-bold text-sm shadow-xl shadow-brand-blue/20 hover:bg-brand-blue-dark transition-all active:scale-95"
-              >
-                <ShoppingBag size={18} /> 
-                <span className="hidden sm:inline">Tout ajouter au panier</span>
-                <span className="sm:hidden">Tout ajouter</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {favorites.length === 0 ? (
@@ -130,36 +98,36 @@ export default function WishlistPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {favorites.map((product) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-background rounded-[32px] border border-border-color overflow-hidden shadow-sm hover:shadow-xl transition-all group"
+                className="bg-background rounded-3xl border border-border-color overflow-hidden shadow-sm hover:shadow-lg transition-all group"
               >
-                <div className="relative aspect-[4/5]">
-                  <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative aspect-square">
+                  <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <button 
                     onClick={() => removeFromWishlist(product.id)}
-                    className="absolute top-4 right-4 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center text-red-500 hover:scale-110 transition-transform"
+                    className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm shadow-md rounded-full flex items-center justify-center text-red-500 hover:scale-110 active:scale-90 transition-all z-10"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
                 
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-brand-green bg-brand-green/5 px-2 py-0.5 rounded-full">
                       {product.category && typeof product.category === 'object' ? (product.category as any).name : product.category}
                     </span>
-                    <div className="flex items-center gap-1 text-xs font-bold text-yellow-500">
-                      <Star size={12} className="fill-yellow-500" /> {product.rating}
+                    <div className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-500">
+                      <Star size={10} className="fill-yellow-500" /> {product.rating}
                     </div>
                   </div>
-                  <h3 className="font-heading font-bold text-lg mb-1 group-hover:text-brand-green transition-colors">{product.name}</h3>
-                  <p className="font-black text-xl mb-6">{product.price.toLocaleString()} FCFA</p>
+                  <h3 className="font-heading font-bold text-sm mb-0.5 group-hover:text-brand-green transition-colors truncate">{product.name}</h3>
+                  <p className="font-black text-base mb-4">{product.price.toLocaleString()} FCFA</p>
                   
                   <button 
                     disabled={product.stock <= 0}
@@ -169,17 +137,17 @@ export default function WishlistPage() {
                       price: product.price,
                       image: product.image
                     })}
-                    className={`w-full py-4 border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${
+                    className={`w-full py-2.5 border border-border-color rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
                       product.stock <= 0 
-                        ? "bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200" 
-                        : "bg-surface hover:bg-brand-green hover:text-white"
+                        ? "bg-slate-50 text-slate-300 cursor-not-allowed border-slate-100" 
+                        : "bg-surface hover:bg-brand-green hover:text-white hover:border-brand-green active:scale-95"
                     }`}
                   >
                     {product.stock <= 0 ? (
-                      <>Rupture de stock</>
+                      <>Rupture</>
                     ) : (
                       <>
-                        <ShoppingCart size={18} /> Ajouter au panier
+                        <ShoppingCart size={14} /> Panier
                       </>
                     )}
                   </button>
