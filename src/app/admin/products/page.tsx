@@ -27,6 +27,8 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { toast } from "react-toastify";
 import { api } from "@/lib/api";
 import { useEffect, useRef } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function AdminProductsPage() {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
@@ -144,12 +146,55 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
+    toast.info("Suppression en cours...", { autoClose: 1000 });
     try {
       await api.delete(`/products/${id}`);
+      toast.success("Produit supprimé avec succès");
       setDeleteId(null);
       fetchData();
     } catch (error) {
       console.error("Failed to delete product:", error);
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
+  const handleExportProducts = () => {
+    toast.info("Génération de l'export PDF...", {
+      autoClose: 1500,
+      icon: <Download size={18} className="text-brand-blue" />
+    });
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("CATALOGUE PRODUITS - BAYSAWARR", 14, 20);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Généré le: ${new Date().toLocaleString('fr-FR')}`, 14, 28);
+      doc.text(`Total produits: ${dbProducts.length}`, 14, 33);
+
+      autoTable(doc, {
+        startY: 40,
+        head: [['ID', 'Nom', 'Catégorie', 'Prix', 'Stock']],
+        body: dbProducts.map(p => [
+          p.id.slice(0, 8).toUpperCase(),
+          p.name,
+          typeof p.category === 'object' ? p.category.name : p.category,
+          `${p.price.toLocaleString()} FCFA`,
+          p.stock.toString()
+        ]),
+        headStyles: { fillColor: [59, 130, 246] },
+      });
+
+      doc.save(`catalogue_produits_${new Date().toISOString().slice(0,10)}.pdf`);
+      toast.success("Catalogue exporté !");
+    } catch (error) {
+      console.error("Export Error:", error);
+      toast.error("Erreur d'exportation");
     }
   };
 
@@ -184,7 +229,10 @@ export default function AdminProductsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
+            <button 
+              onClick={handleExportProducts}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all"
+            >
               <Download size={14} /> Export
             </button>
             <button 
