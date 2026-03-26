@@ -138,15 +138,19 @@ export default function ClientOrdersPage() {
                   </div>
                   
                   <div className="md:w-64 flex flex-col gap-3">
-                    <button 
-                      onClick={() => setTrackingOrder(order.id)}
-                      className="w-full py-3 bg-brand-green text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-lg shadow-brand-green/20"
-                    >
-                      Suivre le Colis
-                    </button>
-                    <button className="w-full py-3 border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-surface transition-all">
-                      Facture PDF
-                    </button>
+                    {order.status !== "cancelled" && (
+                      <>
+                        <button 
+                          onClick={() => setTrackingOrder(order.id)}
+                          className="w-full py-3 bg-brand-green text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-lg shadow-brand-green/20"
+                        >
+                          Suivre le Colis
+                        </button>
+                        <button className="w-full py-3 border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-surface transition-all">
+                          Facture PDF
+                        </button>
+                      </>
+                    )}
                     {order.status === "pending" && (
                       <button
                         onClick={() => handleCancelOrder(order.id)}
