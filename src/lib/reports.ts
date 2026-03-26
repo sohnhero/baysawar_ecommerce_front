@@ -1,5 +1,9 @@
+// Direct import of the ESM bundle to bypass dependency tracing of problematic fflate node versions
+const JSPDF_PATH = "jspdf/dist/jspdf.es.min.js";
+
 export const generateDashboardReport = async (stats: any, topProducts: any[], recentOrders: any[], timeRange: string) => {
-  const { default: jsPDF } = await import("jspdf");
+  // @ts-ignore - Importing from dist/ directly to avoid build issues
+  const { jsPDF } = await import(JSPDF_PATH);
   const { default: autoTable } = await import("jspdf-autotable");
 
   const doc = new jsPDF();
@@ -80,7 +84,8 @@ export const generateDashboardReport = async (stats: any, topProducts: any[], re
 };
 
 export const generateProductsReport = async (products: any[]) => {
-  const { default: jsPDF } = await import("jspdf");
+  // @ts-ignore
+  const { jsPDF } = await import(JSPDF_PATH);
   const { default: autoTable } = await import("jspdf-autotable");
 
   const doc = new jsPDF();
@@ -114,7 +119,8 @@ export const generateProductsReport = async (products: any[]) => {
 };
 
 export const generateOrdersReport = async (orders: any[]) => {
-  const { default: jsPDF } = await import("jspdf");
+  // @ts-ignore
+  const { jsPDF } = await import(JSPDF_PATH);
   const { default: autoTable } = await import("jspdf-autotable");
 
   const doc = new jsPDF();
@@ -141,14 +147,15 @@ export const generateOrdersReport = async (orders: any[]) => {
     head: [["ID", "Client", "Date", "Montant", "Statut"]],
     body: tableData,
     theme: "striped",
-    headStyles: { fillColor: [30, 64, 175] },
+    headStyles: { fillColor: [30, 64, 175] }, // brand-blue
   });
 
   doc.save(`rapport_commandes_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
 export const generateUsersReport = async (users: any[]) => {
-  const { default: jsPDF } = await import("jspdf");
+  // @ts-ignore
+  const { jsPDF } = await import(JSPDF_PATH);
   const { default: autoTable } = await import("jspdf-autotable");
 
   const doc = new jsPDF();

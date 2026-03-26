@@ -1,7 +1,21 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const nextConfig: any = {
   transpilePackages: ["jspdf", "fflate"],
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        fflate: "fflate/browser",
+      },
+    },
+  },
+  webpack: (config: any) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      fflate: "fflate/browser",
+    };
+    return config;
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
