@@ -1,7 +1,21 @@
 // Direct import of the ESM bundle to bypass dependency tracing of problematic fflate node versions
 const JSPDF_PATH = "jspdf/dist/jspdf.es.min.js";
 
-export const generateDashboardReport = async (stats: any, topProducts: any[], recentOrders: any[], timeRange: string) => {
+const statusTranslations: Record<string, string> = {
+  pending: "En attente",
+  processing: "En cours",
+  shipped: "Expédié",
+  delivered: "Livré",
+  cancelled: "Annulé"
+};
+
+export const generateDashboardReport = async (
+  stats: any, 
+  topProducts: any[], 
+  recentOrders: any[], 
+  timeRange: string,
+  ordersByStatus?: Record<string, number>
+) => {
   // @ts-ignore - Importing from dist/ directly to avoid build issues
   const { jsPDF } = await import(JSPDF_PATH);
   const { default: autoTable } = await import("jspdf-autotable");
@@ -24,13 +38,13 @@ export const generateDashboardReport = async (stats: any, topProducts: any[], re
   // Key Metrics
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(16);
-  doc.text("Métriques Clés", 15, 55);
+  doc.text("Indicateurs Clés", 15, 55);
 
   const metricsData = [
-    ["Total Ventes", `${stats?.totalRevenue?.toLocaleString() || 0} FCFA`],
-    ["Commandes", `${stats?.totalOrders || 0}`],
-    ["Produits", `${stats?.totalProducts || 0}`],
-    ["Membres", `${stats?.totalUsers || 0}`]
+    ["Chiffre d'Affaires réalisé (Livré)", `${stats?.totalRevenue?.toLocaleString() || 0} FCFA`],
+    ["Total Commandes", `${stats?.totalOrders || 0}`],
+    ["Catalogue Produits", `${stats?.totalProducts || 0}`],
+    ["Base Membres", `${stats?.totalUsers || 0}`]
   ];
 
   autoTable(doc, {
@@ -41,35 +55,56 @@ export const generateDashboardReport = async (stats: any, topProducts: any[], re
     headStyles: { fillColor: [11, 159, 11] }, // brand-green
   });
 
+  let currentY = (doc as any).lastAutoTable.finalY + 15;
+
+  // Status Breakdown
+  if (ordersByStatus && Object.keys(ordersByStatus).length > 0) {
+    doc.text("Répartition des Commandes", 15, currentY);
+    
+    const statusData = Object.entries(ordersByStatus).map(([status, count]) => [
+      statusTranslations[status] || status,
+      count
+    ]);
+
+    autoTable(doc, {
+      startY: currentY + 5,
+      head: [["Statut", "Nombre"]],
+      body: statusData,
+      theme: "grid",
+      headStyles: { fillColor: [30, 64, 175] }, // brand-blue
+    });
+    
+    currentY = (doc as any).lastAutoTable.finalY + 15;
+  }
+
   // Top Products
-  const finalY = (doc as any).lastAutoTable.finalY + 15;
-  doc.text("Top Produits", 15, finalY);
+  doc.text("Top Produits", 15, currentY);
 
   const productData = topProducts.map(p => [
     p.name,
     p.category || "N/A",
     `${parseFloat(p.price).toLocaleString()} FCFA`,
-    p.orderCount || 0
+    p.sales || 0
   ]);
 
   autoTable(doc, {
-    startY: finalY + 5,
+    startY: currentY + 5,
     head: [["Nom", "Catégorie", "Prix", "Ventes"]],
     body: productData,
     theme: "grid",
     headStyles: { fillColor: [15, 23, 42] },
   });
 
-  // Recent Orders
+  // Recent Activity
   const ordersY = (doc as any).lastAutoTable.finalY + 15;
   doc.text("Dernières Activités", 15, ordersY);
 
   const orderData = recentOrders.map(o => [
     o.id.substring(0, 8).toUpperCase(),
-    o.user?.name || "Client",
-    new Date(o.createdAt).toLocaleDateString(),
-    `${parseFloat(o.totalAmount).toLocaleString()} FCFA`,
-    o.status.toUpperCase()
+    o.customer || "Client",
+    o.date,
+    `${parseFloat(o.amount).toLocaleString()} FCFA`,
+    (statusTranslations[o.status] || o.status).toUpperCase()
   ]);
 
   autoTable(doc, {
@@ -77,7 +112,7 @@ export const generateDashboardReport = async (stats: any, topProducts: any[], re
     head: [["ID", "Client", "Date", "Montant", "Statut"]],
     body: orderData,
     theme: "striped",
-    headStyles: { fillColor: [30, 64, 175] }, // brand-blue
+    headStyles: { fillColor: [51, 65, 85] }, // slate-700
   });
 
   doc.save(`rapport_baysawarr_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -139,7 +174,7 @@ export const generateOrdersReport = async (orders: any[]) => {
     o.user?.name || "Client",
     new Date(o.createdAt).toLocaleDateString(),
     `${parseFloat(o.totalAmount).toLocaleString()} FCFA`,
-    o.status.toUpperCase()
+    (statusTranslations[o.status] || o.status).toUpperCase()
   ]);
 
   autoTable(doc, {

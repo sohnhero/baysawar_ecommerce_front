@@ -62,6 +62,7 @@ export default function AdminPage() {
   const [salesTrend, setSalesTrend] = useState<any[]>([]);
   const [salesByCategory, setSalesByCategory] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [ordersByStatus, setOrdersByStatus] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('30d');
 
@@ -70,12 +71,13 @@ export default function AdminPage() {
     try {
       const data = await api.get<any>(`/admin/stats?timeRange=${timeRange}`);
       const frontendStats = [
-        { label: "Ventes Totales", value: `${data.totalRevenue.toLocaleString()} FCFA`, icon: "revenue", change: "En direct", positive: true },
+        { label: "Ventes (Livré)", value: `${data.totalRevenue.toLocaleString()} FCFA`, icon: "revenue", change: "En direct", positive: true },
         { label: "Commandes", value: data.totalOrders.toString(), icon: "orders", change: "Période", positive: true },
         { label: "Utilisateurs", value: data.totalUsers.toString(), icon: "visitors", change: "Inscrits", positive: true },
         { label: "Produits", value: data.totalProducts.toString(), icon: "products", change: "Actifs", positive: true },
       ];
       setStats(frontendStats);
+      setOrdersByStatus(data.ordersByStatus || {});
       setOrders(data.recentOrders || []);
       setSalesTrend(data.salesTrend || []);
       setSalesByCategory(data.salesByCategory || []);
@@ -102,7 +104,7 @@ export default function AdminPage() {
         totalProducts: stats.find((s: any) => s.icon === "products")?.value || "0",
       };
       
-      await generateDashboardReport(reportStats, topProducts, orders, timeRange);
+      await generateDashboardReport(reportStats, topProducts, orders, timeRange, ordersByStatus);
       toast.success("Rapport exporté avec succès !");
     } catch (error) {
       console.error("Export Error:", error);
@@ -188,6 +190,26 @@ export default function AdminPage() {
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
                     <p className="font-heading font-black text-xl text-slate-900 tracking-tight">{stat.value}</p>
+                    
+                    {/* Status Breakdown for Orders Card */}
+                    {stat.icon === "orders" && Object.keys(ordersByStatus).length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-slate-50 grid grid-cols-2 gap-y-2 gap-x-1">
+                        {Object.entries(ordersByStatus).map(([status, count]) => (
+                          <div key={status} className="flex items-center gap-1.5 min-w-0">
+                            <div className={`w-1 h-1 rounded-full shrink-0 ${
+                              status === 'delivered' ? 'bg-emerald-500' :
+                              status === 'cancelled' ? 'bg-rose-500' :
+                              status === 'pending' ? 'bg-amber-500' :
+                              status === 'processing' ? 'bg-blue-500' :
+                              'bg-indigo-500'
+                            }`} />
+                            <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter truncate">
+                              {statusConfig[status]?.label || status}: {count}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
