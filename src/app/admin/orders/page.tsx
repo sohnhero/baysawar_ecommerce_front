@@ -112,9 +112,9 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleExportReport = () => {
+  const handleExportReport = async () => {
     try {
-      generateOrdersReport(dbOrders);
+      await generateOrdersReport(dbOrders);
       toast.success("Rapport des commandes généré");
     } catch (error) {
       console.error("Export Error:", error);

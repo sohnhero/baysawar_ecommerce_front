@@ -157,14 +157,14 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleExportProducts = () => {
+  const handleExportProducts = async () => {
     toast.info("Génération de l'export PDF...", {
       autoClose: 1500,
       icon: <Download size={18} className="text-brand-blue" />
     });
 
     try {
-      generateProductsReport(dbProducts);
+      await generateProductsReport(dbProducts);
       toast.success("Catalogue exporté !");
     } catch (error) {
       console.error("Export Error:", error);

@@ -1,7 +1,7 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+export const generateDashboardReport = async (stats: any, topProducts: any[], recentOrders: any[], timeRange: string) => {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
 
-export const generateDashboardReport = (stats: any, topProducts: any[], recentOrders: any[], timeRange: string) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -79,7 +79,10 @@ export const generateDashboardReport = (stats: any, topProducts: any[], recentOr
   doc.save(`rapport_baysawarr_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
-export const generateProductsReport = (products: any[]) => {
+export const generateProductsReport = async (products: any[]) => {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -110,7 +113,10 @@ export const generateProductsReport = (products: any[]) => {
   doc.save(`catalogue_produits_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
-export const generateOrdersReport = (orders: any[]) => {
+export const generateOrdersReport = async (orders: any[]) => {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -141,7 +147,10 @@ export const generateOrdersReport = (orders: any[]) => {
   doc.save(`rapport_commandes_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
-export const generateUsersReport = (users: any[]) => {
+export const generateUsersReport = async (users: any[]) => {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 

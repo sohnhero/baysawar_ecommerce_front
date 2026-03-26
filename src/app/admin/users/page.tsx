@@ -76,9 +76,9 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleExportReport = () => {
+  const handleExportReport = async () => {
     try {
-      generateUsersReport(users);
+      await generateUsersReport(users);
       toast.success("Liste des membres générée (PDF)");
     } catch (error) {
       console.error("Export Error:", error);

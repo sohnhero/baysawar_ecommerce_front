@@ -87,7 +87,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleExportReport = () => {
+  const handleExportReport = async () => {
     toast.info("Génération du rapport PDF...", {
       autoClose: 1500,
       icon: <Download size={18} className="text-brand-blue" />
@@ -102,7 +102,7 @@ export default function AdminPage() {
         totalProducts: stats.find((s: any) => s.icon === "products")?.value || "0",
       };
       
-      generateDashboardReport(reportStats, topProducts, orders, timeRange);
+      await generateDashboardReport(reportStats, topProducts, orders, timeRange);
       toast.success("Rapport exporté avec succès !");
     } catch (error) {
       console.error("Export Error:", error);
