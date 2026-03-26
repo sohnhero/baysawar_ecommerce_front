@@ -640,30 +640,44 @@ export default function AdminProductsPage() {
       {/* Modern Confirmation Modal */}
       <AnimatePresence>
         {deleteId && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
               onClick={() => setDeleteId(null)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-xs bg-white rounded-3xl p-8 text-center"
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative z-10 w-full max-w-xs bg-white rounded-[32px] p-8 text-center shadow-2xl"
             >
-              <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Trash2 size={24} />
               </div>
               <h2 className="font-heading font-black text-xl text-slate-900 mb-2">Confirmer ?</h2>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">
-                Suppression irréversible
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-8">
+                Cette action supprimera définitivement le produit.
               </p>
-              <div className="flex gap-2">
-                <button onClick={() => setDeleteId(null)} className="flex-1 py-3 border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest">Non</button>
-                <button onClick={() => deleteId && handleDelete(deleteId)} className="flex-1 py-3 bg-rose-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">Oui</button>
+              <div className="flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setDeleteId(null)} 
+                  className="flex-1 py-3 border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  Non
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    if (deleteId) handleDelete(deleteId);
+                  }} 
+                  className="flex-1 py-3 bg-rose-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20 cursor-pointer"
+                >
+                  Oui
+                </button>
               </div>
             </motion.div>
           </div>
