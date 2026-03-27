@@ -35,7 +35,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { logout, user, isAuthenticated } = useAuthStore();
+  const { logout, user, isAuthenticated, refreshAuth } = useAuthStore();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [artisan, setArtisan] = useState<any>(null);
   const [loadingArtisan, setLoadingArtisan] = useState(true);
@@ -50,11 +50,18 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     const checkAccess = async () => {
       if (!mounted) return;
 
-      if (!isAuthenticated || user?.role !== 'vendeur') {
+      if (!isAuthenticated) {
+        router.push("/login");
+        return;
+      }
+
+      if (user?.role !== 'vendeur') {
         // Double check with artisan status if role not yet updated in store but user is logged in
         try {
           const profile = await api.get<any>("/artisans/me");
           if (profile.status === 'approved') {
+            // Role is fixed in DB, but store is stale. Refresh store!
+            await refreshAuth();
             setArtisan(profile);
             setLoadingArtisan(false);
             return;
@@ -75,7 +82,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     };
 
     checkAccess();
-  }, [mounted, isAuthenticated, user, router]);
+  }, [mounted, isAuthenticated, user?.role, router, refreshAuth]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);

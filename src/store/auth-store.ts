@@ -23,6 +23,7 @@ interface AuthStore {
   isAuthenticated: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
+  refreshAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -46,6 +47,21 @@ export const useAuthStore = create<AuthStore>()(
           localStorage.removeItem("baysawarr-token");
         }
         set({ user: null, token: null, isAuthenticated: false });
+      },
+      refreshAuth: async () => {
+        try {
+          // Use a dynamic import for api to avoid circular dependencies if any
+          const { api } = await import("@/lib/api");
+          const data = await api.get<{ user: User; token: string }>("/auth/me");
+          if (data.user && data.token) {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("baysawarr-token", data.token);
+            }
+            set({ user: data.user, token: data.token, isAuthenticated: true });
+          }
+        } catch (error) {
+          console.error("Auth refresh failed:", error);
+        }
       },
     }),
     {
