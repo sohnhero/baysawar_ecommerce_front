@@ -22,12 +22,30 @@ const footerLinks = {
 };
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubscribed(true);
-    setTimeout(() => setSubscribed(false), 5000);
+    setLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/newsletter/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setSubscribed(true);
+        setEmail("");
+        setTimeout(() => setSubscribed(false), 5000);
+      }
+    } catch (error) {
+      console.error("Newsletter subscription failed:", error);
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <footer className="bg-brand-blue text-white/90">
@@ -57,11 +75,17 @@ export default function Footer() {
                   <input
                     type="email"
                     required
-                    placeholder="Votre email"
-                    className="w-full md:w-72 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-sm placeholder:text-white/40 focus:outline-none focus:border-brand-green transition-colors"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                    className="w-full md:w-72 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-sm placeholder:text-white/40 focus:outline-none focus:border-brand-green transition-colors disabled:opacity-50"
                   />
-                  <button type="submit" className="px-6 py-3 bg-brand-green hover:bg-brand-green-light rounded-xl text-sm font-semibold whitespace-nowrap transition-colors">
-                    S&apos;inscrire
+                  <button 
+                    type="submit" 
+                    disabled={loading}
+                    className="px-6 py-3 bg-brand-green hover:bg-brand-green-light rounded-xl text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50"
+                  >
+                    {loading ? "Chargement..." : "S'inscrire"}
                   </button>
                 </>
               )}

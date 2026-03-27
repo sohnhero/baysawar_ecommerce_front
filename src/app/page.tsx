@@ -571,6 +571,7 @@ export default function HomePage() {
                 src="https://images.pexels.com/photos/11379510/pexels-photo-11379510.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop"
                 alt="Promo traditionnel"
                 fill
+                priority
                 className="object-cover group-hover:scale-105 transition-transform duration-700"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
