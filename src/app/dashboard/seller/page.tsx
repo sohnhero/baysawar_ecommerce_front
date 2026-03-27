@@ -11,7 +11,8 @@ import {
   Activity,
   PackageCheck,
   Clock,
-  ChevronRight
+  ChevronRight,
+  User
 } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";

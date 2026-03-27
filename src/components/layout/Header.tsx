@@ -24,7 +24,7 @@ import { useWishlistStore } from "@/store/wishlist-store";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { api } from "@/lib/api";
-import { LogOut, Package, ClipboardList, Box, ArrowRight } from "lucide-react";
+import { LogOut, Package, ClipboardList, Box, ArrowRight, Store } from "lucide-react";
 import LogoutConfirmModal from "@/components/ui/LogoutConfirmModal";
 
 export default function Header() {
@@ -267,6 +267,11 @@ export default function Header() {
                             {user?.role === 'admin' && (
                               <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-black text-brand-green transition-colors">
                                 <ClipboardList size={18} /> Panel Admin
+                              </Link>
+                            )}
+                            {user?.role === 'vendeur' && (
+                              <Link href="/dashboard/seller" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-black text-brand-green transition-colors">
+                                <Store size={18} /> Espace Vendeur
                               </Link>
                             )}
                             <button

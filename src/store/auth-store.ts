@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 import { useCartStore } from "./cart-store";
 import { useWishlistStore } from "./wishlist-store";
 
-export type UserRole = "client" | "admin";
+export type UserRole = "client" | "admin" | "vendeur";
 
 export interface User {
   id: string;

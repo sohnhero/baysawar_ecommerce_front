@@ -44,7 +44,14 @@ export default function LoginPage() {
       const result = await api.post<{ user: any; token: string }>("/auth/login", data);
       login(result.user, result.token);
       toast.success(`Heureux de vous revoir, ${result.user.name.split(' ')[0]} !`);
-      router.push(result.user.role === "admin" ? "/admin" : "/");
+      // Redirect based on role
+      if (result.user.role === "admin") {
+        router.push("/admin");
+      } else if (result.user.role === "vendeur") {
+        router.push("/dashboard/seller");
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
       const msg = err.message === "Invalid credentials" ? "Identifiants invalides" : err.message;
       setError(msg);

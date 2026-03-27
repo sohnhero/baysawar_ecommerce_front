@@ -209,7 +209,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
               <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 shadow-xl shadow-slate-900/5 p-1">
                   <div className="w-full h-full rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-black text-[10px] lg:text-xs">
-                    {(artisan?.name || user?.name || "V")[0]}
+                    {(artisan?.name || user?.name || "V")?.[0]}
                   </div>
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
               <div className="px-6 mb-10">
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-black">
-                     {(artisan?.name || user?.name || "V")[0]}
+                     {(artisan?.name || user?.name || "V")?.[0]}
                   </div>
                   <div>
                     <p className="text-xs font-black text-white uppercase">{artisan?.name || user?.name || "Vendeur"}</p>

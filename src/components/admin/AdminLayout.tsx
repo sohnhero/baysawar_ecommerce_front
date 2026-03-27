@@ -145,7 +145,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
              <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 relative">
                     {/* User profile image or initial */}
-                    <span className="text-white font-black uppercase text-base">{user?.name[0] || "A"}</span>
+                    <span className="text-white font-black uppercase text-base">{user?.name?.[0] || "A"}</span>
                     <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-brand-green rounded-full border-2 border-slate-900 flex items-center justify-center">
                         <ShieldCheck size={8} className="text-white" />
                     </div>
@@ -207,7 +207,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 shadow-xl shadow-slate-900/5 p-1">
                   <div className="w-full h-full rounded-xl bg-gradient-to-br from-brand-blue to-teal-500 flex items-center justify-center text-white font-black text-[10px] lg:text-xs">
-                    {user?.name[0] || "A"}
+                    {user?.name?.[0] || "A"}
                   </div>
                 </div>
               </div>
