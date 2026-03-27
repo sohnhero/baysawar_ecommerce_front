@@ -321,44 +321,46 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Quantity + Add to cart */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex items-center border border-border-color rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-3 hover:bg-surface transition-colors"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="px-6 py-3 font-medium text-sm border-x border-border-color min-w-[60px] text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-4 py-3 hover:bg-surface transition-colors"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
+            {user?.role !== 'admin' && (
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex items-center border border-border-color rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-4 py-3 hover:bg-surface transition-colors"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span className="px-6 py-3 font-medium text-sm border-x border-border-color min-w-[60px] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="px-4 py-3 hover:bg-surface transition-colors"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
 
-              <motion.button
-                onClick={handleAdd}
-                whileTap={{ scale: 0.95 }}
-                className={`flex-1 flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-white transition-all ${added
-                    ? "bg-green-600"
-                    : "bg-brand-green hover:bg-brand-green-light shadow-lg shadow-brand-green/25"
-                  }`}
-              >
-                {added ? (
-                  <>
-                    <Check size={18} /> Ajouté !
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart size={18} /> Ajouter au panier
-                  </>
-                )}
-              </motion.button>
-            </div>
+                <motion.button
+                  onClick={handleAdd}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-white transition-all ${added
+                      ? "bg-green-600"
+                      : "bg-brand-green hover:bg-brand-green-light shadow-lg shadow-brand-green/25"
+                    }`}
+                >
+                  {added ? (
+                    <>
+                      <Check size={18} /> Ajouté !
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={18} /> Ajouter au panier
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            )}
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2">
@@ -400,92 +402,101 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {/* Form */}
             <div className="lg:col-span-1">
               {user ? (
-                <div className="bg-white rounded-[32px] p-8 border border-border-color shadow-sm sticky top-24">
-                  <h3 className="font-heading font-black text-lg mb-2">
-                    {currentUserReview ? "Modifier votre avis" : "Laisser un avis"}
-                  </h3>
-                  <p className="text-xs text-muted mb-6">
-                    {currentUserReview
-                      ? "Vous avez déjà noté ce produit. Vous pouvez modifier votre commentaire ou votre note."
-                      : "Partagez votre expérience avec la communauté."}
-                  </p>
-                  <form onSubmit={handleSubmitReview} className="space-y-6">
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted mb-2 block">Note</label>
-                      <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => setRating(s)}
-                            className="p-1 hover:scale-110 transition-transform"
-                          >
-                            <Star
-                              size={24}
-                              className={s <= rating ? "fill-brand-gold text-brand-gold" : "text-slate-200"}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted mb-2 block">Commentaire</label>
-                      <textarea
-                        rows={4}
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        placeholder="Qu'avez-vous pensé de ce produit ?"
-                        className="w-full px-5 py-4 rounded-2xl bg-surface border border-border-color focus:outline-none focus:border-brand-green transition-all resize-none text-sm font-medium"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <button
-                        type="submit"
-                        disabled={submitting || !comment.trim()}
-                        className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl transition-all active:scale-95 disabled:opacity-50"
-                      >
-                        {submitting ? "Traitement..." : currentUserReview ? "Mettre à jour" : "Publier mon avis"}
-                      </button>
-
-                      {currentUserReview && (
-                        <div className="pt-2">
-                          {!showDeleteConfirm ? (
+                user.role !== 'admin' ? (
+                  <div className="bg-white rounded-[32px] p-8 border border-border-color shadow-sm sticky top-24">
+                    <h3 className="font-heading font-black text-lg mb-2">
+                      {currentUserReview ? "Modifier votre avis" : "Laisser un avis"}
+                    </h3>
+                    <p className="text-xs text-muted mb-6">
+                      {currentUserReview
+                        ? "Vous avez déjà noté ce produit. Vous pouvez modifier votre commentaire ou votre note."
+                        : "Partagez votre expérience avec la communauté."}
+                    </p>
+                    <form onSubmit={handleSubmitReview} className="space-y-6">
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted mb-2 block">Note</label>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map((s) => (
                             <button
+                              key={s}
                               type="button"
-                              onClick={() => setShowDeleteConfirm(true)}
-                              disabled={submitting}
-                              className="w-full py-3 text-red-500 hover:bg-red-50 rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all disabled:opacity-50"
+                              onClick={() => setRating(s)}
+                              className="p-1 hover:scale-110 transition-transform"
                             >
-                              Supprimer mon avis
+                              <Star
+                                size={24}
+                                className={s <= rating ? "fill-brand-gold text-brand-gold" : "text-slate-200"}
+                              />
                             </button>
-                          ) : (
-                            <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex flex-col gap-3">
-                              <p className="text-[10px] text-red-600 font-bold text-center">Voulez-vous vraiment supprimer votre avis ?</p>
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  onClick={handleDeleteReview}
-                                  disabled={submitting}
-                                  className="flex-1 py-2 bg-red-500 text-white rounded-xl font-bold text-[9px] uppercase tracking-wider"
-                                >
-                                  {submitting ? "..." : "Oui, supprimer"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowDeleteConfirm(false)}
-                                  disabled={submitting}
-                                  className="flex-1 py-2 bg-white text-slate-500 border border-slate-200 rounded-xl font-bold text-[9px] uppercase tracking-wider"
-                                >
-                                  Annuler
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  </form>
-                </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted mb-2 block">Commentaire</label>
+                        <textarea
+                          rows={4}
+                          value={comment}
+                          onChange={(e) => setComment(e.target.value)}
+                          placeholder="Qu'avez-vous pensé de ce produit ?"
+                          className="w-full px-5 py-4 rounded-2xl bg-surface border border-border-color focus:outline-none focus:border-brand-green transition-all resize-none text-sm font-medium"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <button
+                          type="submit"
+                          disabled={submitting || !comment.trim()}
+                          className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {submitting ? "Traitement..." : currentUserReview ? "Mettre à jour" : "Publier mon avis"}
+                        </button>
+
+                        {currentUserReview && (
+                          <div className="pt-2">
+                            {!showDeleteConfirm ? (
+                              <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(true)}
+                                disabled={submitting}
+                                className="w-full py-3 text-red-500 hover:bg-red-50 rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all disabled:opacity-50"
+                              >
+                                Supprimer mon avis
+                              </button>
+                            ) : (
+                              <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex flex-col gap-3">
+                                <p className="text-[10px] text-red-600 font-bold text-center">Voulez-vous vraiment supprimer votre avis ?</p>
+                                <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={handleDeleteReview}
+                                    disabled={submitting}
+                                    className="flex-1 py-2 bg-red-500 text-white rounded-xl font-bold text-[9px] uppercase tracking-wider"
+                                  >
+                                    {submitting ? "..." : "Oui, supprimer"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    disabled={submitting}
+                                    className="flex-1 py-2 bg-white text-slate-500 border border-slate-200 rounded-xl font-bold text-[9px] uppercase tracking-wider"
+                                  >
+                                    Annuler
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 text-center">
+                    <p className="text-sm font-bold text-slate-400 mb-2 italic">Interface d&apos;administration</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Les administrateurs ne peuvent pas laisser d&apos;avis.
+                    </p>
+                  </div>
+                )
               ) : (
                 <div className="bg-brand-blue/5 rounded-[32px] p-8 border border-brand-blue/10 text-center">
                   <p className="text-sm font-bold text-brand-blue mb-4">Vous devez être connecté pour donner votre avis.</p>

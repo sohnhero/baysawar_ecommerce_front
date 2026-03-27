@@ -257,15 +257,19 @@ export default function Header() {
                             <Link href="/account" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors">
                               <User size={18} className="text-muted" /> Profil
                             </Link>
-                            <Link href="/account/orders" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors">
-                              <Package size={18} className="text-muted" /> Mes commandes
-                            </Link>
-                            <button
-                              onClick={handleWishlistClick}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors text-left"
-                            >
-                              <Heart size={18} className="text-muted" /> Wishlist
-                            </button>
+                            {user?.role !== 'admin' && (
+                              <>
+                                <Link href="/account/orders" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors">
+                                  <Package size={18} className="text-muted" /> Mes commandes
+                                </Link>
+                                <button
+                                  onClick={handleWishlistClick}
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-semibold transition-colors text-left"
+                                >
+                                  <Heart size={18} className="text-muted" /> Wishlist
+                                </button>
+                              </>
+                            )}
                             {user?.role === 'admin' && (
                               <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-surface text-sm font-black text-brand-green transition-colors">
                                 <ClipboardList size={18} /> Panel Admin

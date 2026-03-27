@@ -14,7 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const stock = product.stock ?? (product.inStock ? 10 : 0);
   const addItem = useCartStore((s) => s.addItem);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   const isFavorited = isInWishlist(product.id);
   const handleWishlist = async (e: React.MouseEvent) => {
@@ -101,7 +101,7 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
 
           {/* Wishlist toggle */}
-          {isAuthenticated && (
+          {isAuthenticated && user?.role !== 'admin' && (
             <motion.button
               onClick={handleWishlist}
               whileTap={{ scale: 0.8 }}
@@ -117,7 +117,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
           {/* Discount (hidden if already shown in badge) */}
           {product.originalPrice && stock > 0 && !product.badge?.includes('%') && (
-            <div className={`absolute top-3 px-2 py-1 bg-red-500 text-white text-[10px] font-black rounded-full shadow-lg ${isAuthenticated ? 'left-14' : 'right-3'}`}>
+            <div className={`absolute top-3 px-2 py-1 bg-red-500 text-white text-[10px] font-black rounded-full shadow-lg ${isAuthenticated && user?.role !== 'admin' ? 'left-14' : 'right-3'}`}>
               -{Math.round((1 - product.price / product.originalPrice) * 100)}%
             </div>
           )}
@@ -126,7 +126,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className={`absolute inset-0 bg-black/0 transition-colors duration-300 ${stock > 0 ? 'group-hover:bg-black/10' : 'bg-white/40'}`} />
 
           {/* Add to cart */}
-          {stock > 0 && (
+          {stock > 0 && user?.role !== 'admin' && (
             <motion.button
               onClick={handleAdd}
               whileTap={{ scale: 0.9 }}

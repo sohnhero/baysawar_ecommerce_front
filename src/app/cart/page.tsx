@@ -6,14 +6,21 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
+import { useAuthStore } from "@/store/auth-store";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, totalPrice } = useCartStore();
+  const { user } = useAuthStore();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (user?.role === 'admin') {
+      router.push('/admin');
+    }
+  }, [user, router]);
 
   if (!mounted) return null;
 

@@ -22,14 +22,18 @@ import { useRouter } from "next/navigation";
 export default function WishlistPage() {
   const addItem = useCartStore((s) => s.addItem);
   const { items, fetchWishlist, removeFromWishlist, loading } = useWishlistStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
   
   useEffect(() => {
+    if (user?.role === 'admin') {
+      router.push('/admin');
+      return;
+    }
     if (isAuthenticated) {
       fetchWishlist();
     }
-  }, [fetchWishlist, isAuthenticated]);
+  }, [fetchWishlist, isAuthenticated, user, router]);
   
 
   if (!isAuthenticated) {

@@ -30,6 +30,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import CategoryCard from "@/components/ui/CategoryCard";
 import ArtisanCard from "@/components/ui/ArtisanCard";
 import { useCartStore } from "@/store/cart-store";
+import { useAuthStore } from "@/store/auth-store";
 import { api } from "@/lib/api";
 
 const fadeUp = {
@@ -115,6 +116,7 @@ export default function HomePage() {
   const [flashSales, setFlashSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
+  const { user } = useAuthStore();
 
   // Dynamic Data Helper
   const activeCampaign = flashSales as any;
@@ -513,21 +515,23 @@ export default function HomePage() {
                             </span>
                           )}
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            addItem({
-                              productId: p.id,
-                              name: p.name,
-                              price: p.price,
-                              image: p.image,
-                            });
-                          }}
-                          className="p-2 bg-brand-green hover:bg-brand-green-light text-white rounded-lg transition-colors relative z-10"
-                        >
-                          <ShoppingCart size={14} />
-                        </button>
+                        {user?.role !== 'admin' && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              addItem({
+                                productId: p.id,
+                                name: p.name,
+                                price: p.price,
+                                image: p.image,
+                              });
+                            }}
+                            className="p-2 bg-brand-green hover:bg-brand-green-light text-white rounded-lg transition-colors relative z-10"
+                          >
+                            <ShoppingCart size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </Link>
