@@ -39,6 +39,66 @@ const fadeUp = {
   transition: { duration: 0.6 },
 };
 
+const CountdownTimer = ({ expiryDate, light = false }: { expiryDate: string, light?: boolean }) => {
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = +new Date(expiryDate) - +new Date();
+      if (difference > 0) {
+        return {
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        };
+      }
+      return null;
+    };
+
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    setTimeLeft(calculateTimeLeft());
+    return () => clearInterval(timer);
+  }, [expiryDate]);
+
+  if (!timeLeft) return null;
+
+  const colorClass = light ? "bg-white/10 text-white border-white/20" : "bg-brand-blue/5 text-brand-blue border-brand-blue/10";
+  const labelClass = light ? "text-white/40" : "text-brand-blue/40";
+  const separatorClass = light ? "text-white/20" : "text-brand-blue/20";
+
+  return (
+    <div className="flex gap-1.5 sm:gap-3 items-center">
+      {[
+        { label: "J", value: timeLeft.days },
+        { label: "H", value: timeLeft.hours },
+        { label: "M", value: timeLeft.minutes },
+        { label: "S", value: timeLeft.seconds },
+      ].map((unit, i) => (
+        <div key={unit.label} className="flex items-center gap-1.5">
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 ${colorClass} backdrop-blur-md rounded-xl flex items-center justify-center border shadow-sm transition-all`}>
+              <span className="font-heading font-black text-lg sm:text-xl">
+                {unit.value.toString().padStart(2, "0")}
+              </span>
+            </div>
+            <span className={`text-[8px] sm:text-[9px] uppercase font-black tracking-widest mt-1 ${labelClass}`}>{unit.label}</span>
+          </div>
+          {i < 3 && <span className={`font-black text-lg mb-4 opacity-50 ${separatorClass}`}>:</span>}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const features = [
   { icon: Sparkles, title: "100% Fait Main", desc: "Artisanat authentique" },
   { icon: Truck, title: "Livraison Rapide", desc: "Dakar 24h · Monde 5-7j" },
@@ -242,14 +302,22 @@ export default function HomePage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
+                      className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10"
                     >
                       <Link
                         href={heroSlides[currentSlide]?.ctaLink || "/shop"}
-                        className="inline-flex items-center gap-3 px-8 py-4 bg-brand-green hover:bg-brand-green-light text-white font-bold rounded-2xl transition-all shadow-2xl shadow-brand-green/40 hover:scale-105 active:scale-95 text-sm uppercase tracking-wider"
+                        className="inline-flex items-center gap-3 px-8 py-4 bg-brand-green hover:bg-brand-green-light text-white font-bold rounded-2xl transition-all shadow-2xl shadow-brand-green/40 hover:scale-105 active:scale-95 text-sm uppercase tracking-wider shrink-0"
                       >
                         {heroSlides[currentSlide]?.cta}
                         <ArrowRight size={18} className="animate-bounce-x" />
                       </Link>
+
+                      {heroSlides[currentSlide]?.tag === "🔥 EN DIRECT" && activeCampaign?.endTime && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 ml-1">Fin dans :</p>
+                          <CountdownTimer expiryDate={activeCampaign.endTime} light />
+                        </div>
+                      )}
                     </motion.div>
                   </motion.div>
                 </AnimatePresence>
@@ -356,19 +424,28 @@ export default function HomePage() {
       {featuredProducts.length > 0 && (
         <section id="flash-deals" className="py-10 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div {...fadeUp} className="flex flex-col gap-1 mb-8">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl shadow-lg shadow-red-500/20">
-                  <Percent size={16} />
-                  <span className="font-heading font-black text-sm uppercase tracking-widest">{activeCampaign?.title || "Offre Spéciale"}</span>
+            <motion.div {...fadeUp} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl shadow-lg shadow-red-500/20">
+                    <Percent size={16} />
+                    <span className="font-heading font-black text-sm uppercase tracking-widest">{activeCampaign?.title || "Offre Spéciale"}</span>
+                  </div>
+                  {activeCampaign?.active && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-green/10 text-brand-green rounded-lg text-[10px] font-black uppercase tracking-tight border border-brand-green/20">
+                        <Clock size={12} className="animate-pulse" /> Live Now
+                    </div>
+                  )}
                 </div>
-                {activeCampaign?.active && (
-                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-green/10 text-brand-green rounded-lg text-[10px] font-black uppercase tracking-tight border border-brand-green/20">
-                      <Clock size={12} className="animate-pulse" /> Live Now
-                   </div>
-                )}
+                <p className="text-xs text-muted font-medium mt-2 max-w-2xl">{activeCampaign?.description || "Découvrez nos meilleures offres artisanales pour une durée limitée."}</p>
               </div>
-              <p className="text-xs text-muted font-medium mt-2 max-w-2xl">{activeCampaign?.description || "Découvrez nos meilleures offres artisanales pour une durée limitée."}</p>
+
+              {activeCampaign?.endTime && (
+                <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted ml-1 md:mr-1">Temps restant :</p>
+                  <CountdownTimer expiryDate={activeCampaign.endTime} />
+                </div>
+              )}
             </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
