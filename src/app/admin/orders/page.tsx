@@ -169,7 +169,7 @@ export default function AdminOrdersPage() {
             </button>
             <button 
               onClick={handleExportReport}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-blue/10"
+              className="hidden items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-blue/10"
             >
               <Download size={14} /> Rapport
             </button>

@@ -149,7 +149,7 @@ export default function ClientOrdersPage() {
                         >
                           Suivre le Colis
                         </button>
-                        <button className="w-full py-3 border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-surface transition-all">
+                        <button className="hidden w-full py-3 border border-border-color rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-surface transition-all">
                           Facture PDF
                         </button>
                       </>

@@ -36,7 +36,7 @@ export default function Footer() {
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Front-end validation
     const result = newsletterSchema.safeParse({ email });
     if (!result.success) {
@@ -74,7 +74,7 @@ export default function Footer() {
                 Recevez nos offres exclusives et découvertes artisanales
               </p>
               {error && (
-                <motion.p 
+                <motion.p
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   className="text-red-400 text-[10px] font-bold mt-1 uppercase tracking-tight"
@@ -102,8 +102,8 @@ export default function Footer() {
                     disabled={loading}
                     className="w-full md:w-72 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-sm placeholder:text-white/40 focus:outline-none focus:border-brand-green transition-colors disabled:opacity-50"
                   />
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={loading}
                     className="px-6 py-3 bg-brand-green hover:bg-brand-green-light rounded-xl text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50"
                   >
@@ -138,7 +138,9 @@ export default function Footer() {
               authentiques du Sénégal.
             </p>
           </div>
-          {Object.entries(footerLinks).map(([title, links]) => (
+          {Object.entries(footerLinks)
+            .filter(([title]) => title !== "Entreprise")
+            .map(([title, links]) => (
             <div key={title}>
               <h4 className="font-heading font-semibold text-sm mb-4 uppercase tracking-wider text-white/70">
                 {title}
@@ -167,8 +169,7 @@ export default function Footer() {
             © 2026 Baysawarr. Tous droits réservés.
           </p>
           <p className="text-xs text-white/40 flex items-center gap-1">
-            Fait avec <Heart size={12} className="text-brand-green" /> au
-            Sénégal
+            Fait au Sénégal par Pogba & Sohntech
           </p>
         </div>
       </div>

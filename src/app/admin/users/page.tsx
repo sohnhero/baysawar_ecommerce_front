@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
           <div className="flex items-center gap-2">
             <button 
               onClick={handleExportReport}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
+              className="hidden items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
             >
               <Download size={14} /> Rapport PDF
             </button>
@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
                   toast.error("Erreur CSV");
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white border border-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-sm"
+              className="hidden items-center gap-2 px-4 py-2.5 bg-slate-900 text-white border border-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-sm"
             >
               <Download size={14} /> CSV
             </button>
