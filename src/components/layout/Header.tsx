@@ -578,22 +578,43 @@ export default function Header() {
                     <ArrowRight size={18} />
                   </Link>
                 ) : (
-                  <Link
-                    href="/account"
-                    onClick={() => setMobileOpen(false)}
-                    className="mx-4 flex items-center justify-between p-4 rounded-2xl bg-surface border border-border-color"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center">
-                        <User size={20} />
+                  <div className="space-y-2">
+                    <Link
+                      href="/account"
+                      onClick={() => setMobileOpen(false)}
+                      className="mx-4 flex items-center justify-between p-4 rounded-2xl bg-surface border border-border-color"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center">
+                          <User size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted leading-none mb-1">Mon Compte</p>
+                          <p className="text-sm font-black uppercase tracking-tight truncate max-w-[150px]">{user?.name.split(' ')[0]}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted leading-none mb-1">Mon Compte</p>
-                        <p className="text-sm font-black uppercase tracking-tight truncate max-w-[150px]">{user?.name.split(' ')[0]}</p>
-                      </div>
-                    </div>
-                    <ChevronDown size={18} className="-rotate-90 text-muted" />
-                  </Link>
+                      <ChevronDown size={18} className="-rotate-90 text-muted" />
+                    </Link>
+
+                    {user?.role !== 'admin' && (
+                      <Link
+                        href="/account/orders"
+                        onClick={() => setMobileOpen(false)}
+                        className="mx-4 flex items-center justify-between p-4 rounded-2xl bg-surface border border-border-color"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center">
+                            <Package size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted leading-none mb-1">Historique</p>
+                            <p className="text-sm font-black uppercase tracking-tight">Mes commandes</p>
+                          </div>
+                        </div>
+                        <ChevronDown size={18} className="-rotate-90 text-muted" />
+                      </Link>
+                    )}
+                  </div>
                 )}
 
                 {user?.role === 'admin' && (

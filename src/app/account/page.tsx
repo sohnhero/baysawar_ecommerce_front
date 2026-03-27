@@ -2,26 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Package, Mail, MapPin, Phone, Edit2, Camera, Loader2, X, CheckCircle2, Store, Briefcase, FileText, LayoutDashboard, Clock, AlertCircle, ChevronRight } from "lucide-react";
+import { User, Package, Mail, MapPin, Phone, Edit2, Camera, Loader2, X, CheckCircle2, Store, Briefcase, FileText, LayoutDashboard, Clock, AlertCircle, ChevronRight, Truck } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { api } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 
-const statusColors: Record<string, string> = {
-  delivered: "bg-emerald-50 text-emerald-700 border-emerald-100 shadow-[0_2px_10px_-3px_rgba(16,185,129,0.2)]",
-  shipped: "bg-blue-50 text-blue-700 border-blue-100 shadow-[0_2px_10px_-3px_rgba(59,130,246,0.2)]",
-  processing: "bg-indigo-50 text-indigo-700 border-indigo-100 shadow-[0_2px_10px_-3px_rgba(99,102,241,0.2)]",
-  cancelled: "bg-rose-50 text-rose-700 border-rose-100 shadow-[0_2px_10px_-3px_rgba(244,63,94,0.2)]",
-  pending: "bg-amber-50 text-amber-700 border-amber-200 shadow-[0_2px_10px_-3px_rgba(245,158,11,0.3)] animate-pulse",
-};
-
-const statusLabels: Record<string, string> = {
-  delivered: "Livré",
-  shipped: "Expédié",
-  processing: "Préparation",
-  cancelled: "Annulé",
-  pending: "En attente",
+const statusStyles = {
+  pending: { label: "En attente", icon: <Clock size={12} />, color: "text-amber-600 bg-amber-50 border-amber-100 shadow-[0_2px_10px_-3px_rgba(245,158,11,0.2)]" },
+  processing: { label: "Préparation", icon: <Clock size={12} />, color: "text-indigo-600 bg-indigo-50 border-indigo-100 shadow-[0_2px_10px_-3px_rgba(99,102,241,0.2)]" },
+  shipped: { label: "Expédition", icon: <Truck size={12} />, color: "text-blue-600 bg-blue-50 border-blue-100 shadow-[0_2px_10px_-3px_rgba(59,130,246,0.2)]" },
+  delivered: { label: "Livré", icon: <CheckCircle2 size={12} />, color: "text-emerald-600 bg-emerald-50 border-emerald-100 shadow-[0_2px_10px_-3px_rgba(16,185,129,0.2)]" },
+  cancelled: { label: "Annulé", icon: <X size={12} />, color: "text-rose-600 bg-rose-50 border-rose-100 shadow-[0_2px_10px_-3px_rgba(244,63,94,0.2)]" },
 };
 
 import { AnimatePresence } from "framer-motion";
@@ -400,26 +392,33 @@ export default function AccountPage() {
               orders.map((order) => (
                 <div
                   key={order.id}
-                  className="bg-background rounded-3xl border border-border-color p-6 hover:shadow-xl transition-all group"
+                  className="bg-background rounded-3xl border border-border-color overflow-hidden hover:shadow-xl transition-all group"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                  <div className="p-6 border-b border-border-color bg-surface/30 flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center">
                         <Package size={20} />
                       </div>
                       <div>
-                        <p className="font-heading font-black text-brand-blue uppercase tracking-tighter">#{order.id.substring(0, 8).toUpperCase()}</p>
-                        <p className="text-[10px] text-muted font-black uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        <p className="text-[10px] font-bold text-muted uppercase tracking-widest leading-none mb-1">Numéro</p>
+                        <p className="font-bold text-brand-blue tracking-tighter">#{order.id.substring(0, 8).toUpperCase()}</p>
                       </div>
                     </div>
-                    <span
-                      className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border ${statusColors[order.status] || statusColors.pending
-                        }`}
+                    <div className="hidden sm:block">
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest leading-none mb-1">Date</p>
+                      <p className="text-xs font-bold">{new Date(order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                    <div
+                      className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border flex items-center gap-2 ${
+                        statusStyles[order.status as keyof typeof statusStyles]?.color || statusStyles.pending.color
+                      }`}
                     >
-                      {statusLabels[order.status] || statusLabels.pending}
-                    </span>
+                      {statusStyles[order.status as keyof typeof statusStyles]?.icon || statusStyles.pending.icon}
+                      {statusStyles[order.status as keyof typeof statusStyles]?.label || statusStyles.pending.label}
+                    </div>
                   </div>
-                  <div className="space-y-4 mb-6 pt-6 border-t border-border-color border-dashed">
+
+                  <div className="p-6 space-y-4">
                     {order.items.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between items-center text-sm">
                         <div className="flex items-center gap-4">
@@ -428,20 +427,24 @@ export default function AccountPage() {
                           </div>
                           <div>
                             <p className="font-bold text-slate-800 line-clamp-1">{item.product?.name || "Produit"}</p>
-                            <p className="text-xs text-muted font-bold tracking-widest">Quantité: {item.quantity}</p>
+                            <p className="text-[10px] text-muted font-bold tracking-widest uppercase">X{item.quantity} · {parseFloat(item.price).toLocaleString()} F</p>
                           </div>
                         </div>
-                        <span className="font-black text-brand-blue">
+                        <span className="font-black text-brand-blue text-xs">
                           {(parseFloat(item.price) * item.quantity).toLocaleString()} FCFA
                         </span>
                       </div>
                     ))}
-                  </div>
-                  <div className="flex justify-between items-center pt-6 border-t border-border-color">
-                    <span className="text-xs font-black text-muted uppercase tracking-widest">Total Payé</span>
-                    <span className="font-heading font-black text-brand-green text-xl">
-                      {parseFloat(order.totalAmount).toLocaleString()} FCFA
-                    </span>
+                    
+                    <div className="flex justify-between items-center pt-4 border-t border-border-color border-dashed">
+                      <div className="flex items-center gap-2">
+                         <span className="text-[10px] font-black text-muted uppercase tracking-widest">Total Payé</span>
+                         <Link href="/account/orders" className="text-[9px] font-black text-brand-green uppercase tracking-widest hover:underline flex items-center gap-1">Suivre <ChevronRight size={10} /></Link>
+                      </div>
+                      <span className="font-heading font-black text-brand-green text-lg">
+                        {parseFloat(order.totalAmount).toLocaleString()} FCFA
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))
