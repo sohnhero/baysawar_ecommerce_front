@@ -15,6 +15,11 @@ export interface User {
   phone?: string;
   address?: string;
   createdAt?: string;
+  artisan?: {
+    id: string;
+    name: string;
+    [key: string]: any;
+  };
 }
 
 interface AuthStore {

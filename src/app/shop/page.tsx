@@ -13,6 +13,7 @@ function ShopContent() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
   const initialCat = searchParams.get("cat") || "all";
+  const initialSeller = searchParams.get("seller") || "";
 
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
@@ -20,6 +21,7 @@ function ShopContent() {
 
   const [search, setSearch] = useState(initialSearch);
   const [selectedCat, setSelectedCat] = useState(initialCat);
+  const [selectedSeller, setSelectedSeller] = useState(initialSeller);
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState<string>("");
@@ -64,11 +66,12 @@ function ShopContent() {
   const categories = dbCategories;
 
   // Sync state with URL during render to avoid useEffect cascading render warning
-  const [prevParams, setPrevParams] = useState({ s: initialSearch, c: initialCat });
-  if (initialSearch !== prevParams.s || initialCat !== prevParams.c) {
+  const [prevParams, setPrevParams] = useState({ s: initialSearch, c: initialCat, sel: initialSeller });
+  if (initialSearch !== prevParams.s || initialCat !== prevParams.c || initialSeller !== prevParams.sel) {
     setSearch(initialSearch);
     setSelectedCat(initialCat);
-    setPrevParams({ s: initialSearch, c: initialCat });
+    setSelectedSeller(initialSeller);
+    setPrevParams({ s: initialSearch, c: initialCat, sel: initialSeller });
   }
 
   const filtered = useMemo(() => {
@@ -79,6 +82,9 @@ function ShopContent() {
           const catSlug = typeof p.category === 'object' ? p.category.slug : p.categorySlug;
           return catSlug === selectedCat;
       });
+    }
+    if (selectedSeller) {
+      result = result.filter((p) => p.artisanId === selectedSeller);
     }
     if (search) {
       const q = search.toLowerCase();
@@ -175,9 +181,12 @@ function ShopContent() {
               </h3>
               <div className="space-y-1">
                 <button
-                  onClick={() => setSelectedCat("all")}
+                  onClick={() => {
+                    setSelectedCat("all");
+                    setSelectedSeller("");
+                  }}
                   className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
-                    selectedCat === "all"
+                    selectedCat === "all" && !selectedSeller
                       ? "bg-brand-green/10 text-brand-green font-medium"
                       : "hover:bg-surface text-muted"
                   }`}
@@ -187,7 +196,10 @@ function ShopContent() {
                 {categories.map((cat) => (
                   <button
                     key={cat.slug}
-                    onClick={() => setSelectedCat(cat.slug)}
+                    onClick={() => {
+                      setSelectedCat(cat.slug);
+                      setSelectedSeller("");
+                    }}
                     className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
                       selectedCat === cat.slug
                         ? "bg-brand-green/10 text-brand-green font-medium"
@@ -255,6 +267,7 @@ function ShopContent() {
                   onClick={() => {
                     setSearch(""); 
                     setSelectedCat("all");
+                    setSelectedSeller("");
                     setMinPrice("");
                     setMaxPrice("");
                   }}

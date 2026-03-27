@@ -41,7 +41,7 @@ export default function ArtisanCard({ artisan }: { artisan: Artisan }) {
         {artisan.bio}
       </p>
       <Link 
-        href={`/shop?search=${encodeURIComponent(artisan.name)}`}
+        href={`/shop?seller=${artisan.id}`}
         className="inline-block w-full py-2.5 border border-brand-green/30 text-brand-green rounded-xl text-xs font-bold hover:bg-brand-green hover:text-white transition-all"
       >
         Voir les produits

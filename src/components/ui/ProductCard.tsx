@@ -15,6 +15,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
   const { isAuthenticated, user } = useAuthStore();
+  const isOwnProduct = user?.role === 'vendeur' && user?.artisan?.id === product.artisanId;
 
   const isFavorited = isInWishlist(product.id);
   const handleWishlist = async (e: React.MouseEvent) => {
@@ -101,7 +102,7 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
 
           {/* Wishlist toggle */}
-          {isAuthenticated && user?.role !== 'admin' && (
+          {isAuthenticated && user?.role !== 'admin' && !isOwnProduct && (
             <motion.button
               onClick={handleWishlist}
               whileTap={{ scale: 0.8 }}
@@ -126,7 +127,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className={`absolute inset-0 bg-black/0 transition-colors duration-300 ${stock > 0 ? 'group-hover:bg-black/10' : 'bg-white/40'}`} />
 
           {/* Add to cart */}
-          {stock > 0 && user?.role !== 'admin' && (
+          {stock > 0 && user?.role !== 'admin' && !isOwnProduct && (
             <motion.button
               onClick={handleAdd}
               whileTap={{ scale: 0.9 }}
@@ -135,6 +136,13 @@ export default function ProductCard({ product }: { product: Product }) {
             >
               <ShoppingCart size={18} />
             </motion.button>
+          )}
+
+          {/* Own product indicator */}
+          {isOwnProduct && (
+            <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-brand-blue/80 backdrop-blur-md text-white text-[10px] font-black rounded-lg uppercase tracking-widest shadow-lg">
+              Votre Produit
+            </div>
           )}
         </div>
 

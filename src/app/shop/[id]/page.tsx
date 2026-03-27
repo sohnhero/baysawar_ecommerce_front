@@ -152,6 +152,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     originalPrice: dbProduct.originalPrice ? parseFloat(dbProduct.originalPrice) : (dbProduct.discountPrice ? parseFloat(dbProduct.discountPrice) : null)
   };
 
+  const isOwnProduct = user?.role === 'vendeur' && user?.artisan?.id === dbProduct?.artisanId;
+
   const handleAdd = () => {
     for (let i = 0; i < quantity; i++) {
       addItem({
@@ -321,7 +323,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Quantity + Add to cart */}
-            {user?.role !== 'admin' && (
+            {user?.role !== 'admin' && !isOwnProduct && (
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="flex items-center border border-border-color rounded-xl overflow-hidden">
                   <button
@@ -359,6 +361,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </>
                   )}
                 </motion.button>
+              </div>
+            )}
+
+            {isOwnProduct && (
+              <div className="mb-8 p-4 bg-brand-blue/5 border border-brand-blue/20 rounded-2xl flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue shrink-0">
+                  <Check size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-brand-blue">C&apos;est votre produit</p>
+                  <p className="text-[10px] text-muted font-medium uppercase tracking-wider text-muted/60">Vous ne pouvez pas commander vos propres articles</p>
+                </div>
               </div>
             )}
 
@@ -488,6 +502,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         )}
                       </div>
                     </form>
+                  </div>
+                ) : isOwnProduct ? (
+                  <div className="bg-brand-blue/5 rounded-[32px] p-8 border border-brand-blue/10 text-center">
+                    <p className="text-sm font-bold text-brand-blue mb-2 italic">Votre produit</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Vous ne pouvez pas laisser d&apos;avis sur vos propres produits.
+                    </p>
                   </div>
                 ) : (
                   <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 text-center">
