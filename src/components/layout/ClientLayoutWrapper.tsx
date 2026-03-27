@@ -16,7 +16,7 @@ export default function ClientLayoutWrapper({
   
   // Define routes that should NOT have the global header and footer
   const isAuthPage = pathname === "/login" || pathname === "/register";
-  const isAdminPage = pathname?.startsWith("/admin");
+  const isAdminPage = pathname?.startsWith("/admin") || pathname?.startsWith("/dashboard");
   
   const showHeaderFooter = !isAuthPage && !isAdminPage;
 
