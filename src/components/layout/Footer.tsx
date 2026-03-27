@@ -169,7 +169,7 @@ export default function Footer() {
             © 2026 Baysawarr. Tous droits réservés.
           </p>
           <p className="text-xs text-white/40 flex items-center gap-1">
-            Fait au Sénégal par{" "}
+            © Fait au Sénégal par{" "}
             <a 
               href="https://www.linkedin.com/in/ahmady-ibrahima-guisse-a7a198152" 
               target="_blank" 
