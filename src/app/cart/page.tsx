@@ -32,7 +32,7 @@ export default function CartPage() {
             Votre panier est vide
           </h1>
           <p className="text-muted mb-6">
-            Découvrez nos produits artisanaux et commencez votre shopping
+            Découvrez les pépites de nos vendeurs et commencez votre shopping
           </p>
           <Link
             href="/shop"

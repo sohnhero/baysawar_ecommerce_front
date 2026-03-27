@@ -169,7 +169,7 @@ export default function Header() {
                   Baysa<span className="text-brand-green">warr</span>
                 </span>
                 <span className="hidden sm:block text-[10px] text-muted tracking-[0.2em] uppercase font-medium leading-none text-foreground/60 mt-0.5">
-                  Artisanat Premium
+                  Vendeurs Premium
                 </span>
               </div>
             </Link>
@@ -180,7 +180,7 @@ export default function Header() {
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                 <input
                   type="text"
-                  placeholder="Rechercher des produits, artisans, catégories..."
+                  placeholder="Rechercher des produits, vendeurs, catégories..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   className="w-full pl-11 pr-24 py-3 rounded-2xl bg-surface border border-border-color text-sm placeholder:text-muted focus:outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/10 transition-all"

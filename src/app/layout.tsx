@@ -14,9 +14,9 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Baysawarr — Artisanat & Produits Authentiques du Sénégal",
+  title: "Baysawarr — Vendeurs & Produits Authentiques du Sénégal",
   description:
-    "Découvrez les trésors du Sénégal. Artisanat premium, produits traditionnels et agro-alimentaire d'exception. Livraison dans le monde entier.",
+    "Découvrez les trésors du Sénégal. Vendeurs premium, produits traditionnels et agro-alimentaire d'exception. Livraison dans le monde entier.",
   icons: {
     icon: "/logo_baysawarr.jpg",
     shortcut: "/logo_baysawarr.jpg",

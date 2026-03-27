@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Package, Mail, MapPin, Phone, Edit2 } from "lucide-react";
+import { User, Package, Mail, MapPin, Phone, Edit2, Camera, Loader2, X, CheckCircle2, Store, Briefcase, FileText, LayoutDashboard, Clock, AlertCircle, ChevronRight } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { api } from "@/lib/api";
 import Image from "next/image";
@@ -25,7 +25,6 @@ const statusLabels: Record<string, string> = {
 };
 
 import { AnimatePresence } from "framer-motion";
-import { Camera, Loader2, X, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -39,12 +38,22 @@ const profileSchema = z.object({
 
 type ProfileForm = z.infer<typeof profileSchema>;
 
+const sellerSchema = z.object({
+  shopName: z.string().min(2, "Le nom de la boutique est trop court"),
+  specialty: z.string().min(2, "Veuillez préciser votre spécialité"),
+  bio: z.string().min(10, "La présentation doit faire au moins 10 caractères"),
+});
+
+type SellerForm = z.infer<typeof sellerSchema>;
+
 export default function AccountPage() {
   const [tab, setTab] = useState<"profile" | "orders">("profile");
   const { user, login } = useAuthStore();
   const [orders, setOrders] = useState<any[]>([]);
+  const [artisan, setArtisan] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSellerModal, setShowSellerModal] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const {
@@ -60,6 +69,24 @@ export default function AccountPage() {
       address: user?.address || "",
     },
   });
+
+  const sellerForm = useForm<SellerForm>({
+    resolver: zodResolver(sellerSchema),
+  });
+
+  // Fetch artisan status
+  useEffect(() => {
+    const fetchArtisan = async () => {
+      try {
+        const data = await api.get<any>("/artisans/me");
+        setArtisan(data);
+      } catch (error) {
+        // If 404, it just means they are not a seller yet
+        setArtisan(null);
+      }
+    };
+    if (user) fetchArtisan();
+  }, [user]);
 
   // Sync with user data
   useEffect(() => {
@@ -121,6 +148,22 @@ export default function AccountPage() {
       setShowEditModal(false);
     } catch (error) {
       toast.error("Erreur lors de la mise à jour");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onApplyToBeSeller = async (data: SellerForm) => {
+    setLoading(true);
+    try {
+      await api.post("/artisans/apply", data);
+      toast.success("Votre demande a été envoyée avec succès !");
+      setShowSellerModal(false);
+      // Refresh artisan status
+      const updatedArtisan = await api.get<any>("/artisans/me");
+      setArtisan(updatedArtisan);
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de l'envoi de la demande");
     } finally {
       setLoading(false);
     }
@@ -246,6 +289,78 @@ export default function AccountPage() {
                   <p className={`text-sm font-bold ${user?.address ? "text-slate-800" : "text-slate-400 italic font-medium"}`}>
                     {user?.address || "Non renseignée"}
                   </p>
+                </div>
+              </div>
+
+              {/* Seller Account Section */}
+              <div className="md:col-span-2 p-6 bg-emerald-50/50 rounded-[32px] border border-emerald-100/50 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-[100px] -z-0" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-emerald-100 flex items-center justify-center text-emerald-600 transition-transform group-hover:scale-110">
+                      <Store size={28} />
+                    </div>
+                    <div>
+                      <h3 className="font-heading font-black text-lg text-slate-900 tracking-tight">Espace Vendeur</h3>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/60 mt-0.5">Programme Partenaires Baysawarr</p>
+                    </div>
+                  </div>
+
+                  {!artisan ? (
+                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                      <p className="text-xs font-bold text-slate-500 max-w-[200px]">Partagez votre savoir-faire et commencez à vendre vos créations.</p>
+                      <button 
+                        onClick={() => setShowSellerModal(true)}
+                        className="px-6 py-3 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2"
+                      >
+                        Ouvrir ma boutique <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  ) : artisan.status === "pending" ? (
+                    <div className="flex items-center gap-3 px-6 py-3 bg-amber-50 border border-amber-100 rounded-2xl">
+                      <Clock size={18} className="text-amber-500 animate-pulse" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Demande en cours</p>
+                        <p className="text-[9px] font-bold text-amber-500/80 uppercase">Nous étudions votre profil</p>
+                      </div>
+                    </div>
+                  ) : artisan.status === "approved" ? (
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                      <Link 
+                        href="/dashboard/seller"
+                        className="px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-500 transition-all shadow-xl shadow-slate-900/10 active:scale-95 flex items-center gap-3"
+                      >
+                        <LayoutDashboard size={16} /> Gérer ma boutique
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          sellerForm.reset({
+                            shopName: artisan.name,
+                            specialty: artisan.specialty,
+                            bio: artisan.bio
+                          });
+                          setShowSellerModal(true);
+                        }}
+                        className="px-6 py-3 border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
+                      >
+                        <Edit2 size={14} /> Éditer infos
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                      <div className="flex items-center gap-3 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl">
+                        <AlertCircle size={18} className="text-rose-500" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-rose-600">Inscription Refusée</span>
+                      </div>
+                      <button 
+                        onClick={() => setShowSellerModal(true)}
+                        className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline"
+                      >
+                        Réessayer l&apos;inscription
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -428,6 +543,118 @@ export default function AccountPage() {
                         </div>
                       ) : (
                         "Sauvegarder"
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Seller Application Modal */}
+      <AnimatePresence>
+        {showSellerModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSellerModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative bg-white rounded-[40px] p-8 w-full max-w-md shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-[100px] -z-0" />
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h2 className="font-heading font-black text-2xl text-slate-900">Devenir Vendeur</h2>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 mt-1">Rejoignez nos vendeurs locaux</p>
+                  </div>
+                  <button
+                    onClick={() => setShowSellerModal(false)}
+                    className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 transition-all border border-slate-100"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <form onSubmit={sellerForm.handleSubmit(onApplyToBeSeller)} className="space-y-5">
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Nom de la Boutique</label>
+                    <div className="relative">
+                      <Store size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        {...sellerForm.register("shopName")}
+                        placeholder="Ex: Le Savoir-Faire Sénégalais"
+                        className={`w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border text-sm font-bold focus:outline-none transition-all ${
+                          sellerForm.formState.errors.shopName ? "border-red-500" : "border-slate-100 focus:border-emerald-500"
+                        }`}
+                      />
+                    </div>
+                    {sellerForm.formState.errors.shopName && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{sellerForm.formState.errors.shopName.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Spécialité</label>
+                    <div className="relative">
+                      <Briefcase size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        {...sellerForm.register("specialty")}
+                        placeholder="Ex: Maroquinerie, Teinture..."
+                        className={`w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border text-sm font-bold focus:outline-none transition-all ${
+                          sellerForm.formState.errors.specialty ? "border-red-500" : "border-slate-100 focus:border-emerald-500"
+                        }`}
+                      />
+                    </div>
+                    {sellerForm.formState.errors.specialty && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{sellerForm.formState.errors.specialty.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Présentation (Bio)</label>
+                    <div className="relative">
+                      <FileText size={14} className="absolute left-4 top-4 text-slate-400" />
+                      <textarea
+                        {...sellerForm.register("bio")}
+                        rows={4}
+                        placeholder="Parlez-nous de votre histoire et de vos produits..."
+                        className={`w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border text-sm font-bold focus:outline-none transition-all resize-none ${
+                          sellerForm.formState.errors.bio ? "border-red-500" : "border-slate-100 focus:border-emerald-500"
+                        }`}
+                      />
+                    </div>
+                    {sellerForm.formState.errors.bio && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{sellerForm.formState.errors.bio.message}</p>}
+                  </div>
+
+                  <div className="pt-4 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowSellerModal(false)}
+                      className="flex-1 py-4 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-[2] py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>Envoi en cours...</span>
+                        </div>
+                      ) : (
+                        "Envoyer ma demande"
                       )}
                     </button>
                   </div>

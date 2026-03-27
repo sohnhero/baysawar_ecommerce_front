@@ -15,7 +15,7 @@ const footerLinks = {
   ],
   Entreprise: [
     { label: "À propos", href: "/about" },
-    { label: "Nos artisans", href: "/#artisans" },
+    { label: "Nos vendeurs", href: "/#vendeurs" },
     { label: "Blog", href: "/blog" },
     { label: "Carrières", href: "/careers" },
   ],
@@ -71,7 +71,7 @@ export default function Footer() {
                 Restez connecté
               </h3>
               <p className="text-white/60 text-sm">
-                Recevez nos offres exclusives et découvertes artisanales
+                Recevez nos offres exclusives et découvertes de nos vendeurs
               </p>
               {error && (
                 <motion.p
@@ -134,7 +134,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-white/50 text-sm leading-relaxed">
-              La marketplace premium de l&apos;artisanat et des produits
+              La marketplace premium des vendeurs et de l'artisanat
               authentiques du Sénégal.
             </p>
           </div>

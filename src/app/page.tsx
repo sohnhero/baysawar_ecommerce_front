@@ -103,7 +103,7 @@ const features = [
   { icon: Sparkles, title: "100% Fait Main", desc: "Artisanat authentique" },
   { icon: Truck, title: "Livraison Rapide", desc: "Dakar 24h · Monde 5-7j" },
   { icon: Shield, title: "Paiement Sécurisé", desc: "Wave · OM · Carte" },
-  { icon: HeartHandshake, title: "Commerce Équitable", desc: "Artisans rémunérés justement" },
+  { icon: HeartHandshake, title: "Commerce Équitable", desc: "Vendeurs rémunérés justement" },
 ];
 
 // Dynamic Hero Slide Generation moved inside component
@@ -124,7 +124,7 @@ export default function HomePage() {
     const baseSlides = [
       {
         tag: "Collection 2026",
-        title: "Artisanat Premium",
+        title: "Vendeurs Premium",
         titleAccent: "du Sénégal",
         desc: "L'excellence du savoir-faire traditionnel, sélectionné pour votre intérieur moderne.",
         cta: "Découvrir l'Atelier",
@@ -673,17 +673,17 @@ export default function HomePage() {
       </section>
 
       {/* ─── ARTISANS ─── */}
-      <section id="artisans" className="py-14 bg-surface">
+      <section id="vendeurs" className="py-14 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp} className="text-center mb-10">
             <p className="text-brand-green font-semibold text-xs uppercase tracking-widest mb-1">
-              Les Créateurs
+              Les Partenaires
             </p>
             <h2 className="font-heading font-bold text-2xl md:text-3xl mb-3">
-              Artisans en Vedette
+              Nos Vendeurs
             </h2>
             <p className="text-muted max-w-xl mx-auto text-sm">
-              Rencontrez les talents qui donnent vie à nos produits. Chaque artisan
+              Rencontrez les talents qui donnent vie à nos produits. Chaque vendeur
               apporte son savoir-faire unique et son héritage culturel.
             </p>
           </motion.div>
@@ -715,8 +715,8 @@ export default function HomePage() {
                 <span className="text-brand-green">Sénégal</span> ?
               </h2>
               <p className="text-white/60 max-w-lg mx-auto mb-6 text-sm lg:text-base">
-                Rejoignez notre communauté et soutenez l&apos;artisanat
-                sénégalais authentique. Chaque achat fait la différence.
+                Rejoignez notre communauté et soutenez nos vendeurs
+                sénégalais authentiques. Chaque achat fait la différence.
               </p>
               <Link
                 href="/shop"

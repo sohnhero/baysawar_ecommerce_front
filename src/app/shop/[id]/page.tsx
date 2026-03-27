@@ -21,7 +21,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  
+
   // Review form state
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
@@ -47,7 +47,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       }
 
       setDbProduct(p);
-      
+
       // Fetch related products
       if (p.categoryId) {
         const rel = await api.get<any[]>(`/products?category=${p.categoryId}`);
@@ -144,7 +144,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     rating: parseFloat(dbProduct.rating) || 5,
     reviewCount: dbProduct.reviewCount || 0,
     longDescription: dbProduct.longDescription || dbProduct.description,
-    artisan: dbProduct.artisan?.name || "Artisan Baysawarr",
+    artisan: dbProduct.artisan?.name || "Fabira Trading",
     category: dbProduct.category?.name || "Artisanat",
     categorySlug: dbProduct.category?.slug || "artisanat",
     tags: dbProduct.tags || [],
@@ -194,7 +194,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const handleDeleteReview = async () => {
     if (!currentUserReview) return;
-    
+
     setSubmitting(true);
     try {
       await api.delete(`/reviews/${currentUserReview.id}`);
@@ -253,11 +253,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                    selectedImage === i
+                  className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${selectedImage === i
                       ? "border-brand-green ring-2 ring-brand-green/20"
                       : "border-border-color hover:border-brand-green/50"
-                  }`}
+                    }`}
                 >
                   <Image src={img} alt="" fill className="object-cover" sizes="80px" />
                 </button>
@@ -344,11 +343,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <motion.button
                 onClick={handleAdd}
                 whileTap={{ scale: 0.95 }}
-                className={`flex-1 flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-white transition-all ${
-                  added
+                className={`flex-1 flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-white transition-all ${added
                     ? "bg-green-600"
                     : "bg-brand-green hover:bg-brand-green-light shadow-lg shadow-brand-green/25"
-                }`}
+                  }`}
               >
                 {added ? (
                   <>
@@ -407,8 +405,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     {currentUserReview ? "Modifier votre avis" : "Laisser un avis"}
                   </h3>
                   <p className="text-xs text-muted mb-6">
-                    {currentUserReview 
-                      ? "Vous avez déjà noté ce produit. Vous pouvez modifier votre commentaire ou votre note." 
+                    {currentUserReview
+                      ? "Vous avez déjà noté ce produit. Vous pouvez modifier votre commentaire ou votre note."
                       : "Partagez votre expérience avec la communauté."}
                   </p>
                   <form onSubmit={handleSubmitReview} className="space-y-6">
@@ -448,7 +446,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       >
                         {submitting ? "Traitement..." : currentUserReview ? "Mettre à jour" : "Publier mon avis"}
                       </button>
-                      
+
                       {currentUserReview && (
                         <div className="pt-2">
                           {!showDeleteConfirm ? (

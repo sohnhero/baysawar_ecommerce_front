@@ -4,12 +4,11 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, Phone, MapPin, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, Phone, MapPin, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Store, Briefcase, FileText } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
-
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +19,18 @@ const registerSchema = z.object({
   phone: z.string().regex(/^(77|78|76|70|75)[0-9]{7}$/, "Numéro de téléphone sénégalais invalide (ex: 771234567)"),
   address: z.string().min(5, "L'adresse est trop courte"),
   password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères"),
+  isSeller: z.boolean(),
+  shopName: z.string().optional(),
+  specialty: z.string().optional(),
+  bio: z.string().optional(),
+}).refine((data) => {
+  if (data.isSeller) {
+    return !!data.shopName && !!data.specialty && !!data.bio;
+  }
+  return true;
+}, {
+  message: "Veuillez remplir tous les champs vendeur",
+  path: ["shopName"], // showing error on shopName for simplicity
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -33,17 +44,33 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      isSeller: false
+    }
   });
+
+  const isSeller = watch("isSeller");
 
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true);
     setError("");
 
     try {
-      await api.post("/auth/register", data);
+      const payload = {
+        ...data,
+        sellerData: data.isSeller ? {
+          name: data.shopName,
+          specialty: data.specialty,
+          bio: data.bio,
+          location: data.address
+        } : undefined
+      };
+      
+      await api.post("/auth/register", payload);
       toast.success("Compte créé avec succès ! Veuillez vous connecter.");
       router.push("/login?registered=true");
     } catch (err: any) {
@@ -92,7 +119,7 @@ export default function RegisterPage() {
               <span className="text-[10px] font-black uppercase tracking-widest">Rejoignez la Communauté</span>
             </motion.div>
             <h2 className="text-6xl font-black leading-[0.9] tracking-tighter mb-8">
-              L&apos;Artisanat <br />
+              Le Savoir-Faire <br />
               <span className="text-slate-900">À Votre Portée.</span>
             </h2>
             
@@ -101,7 +128,7 @@ export default function RegisterPage() {
                  "Accès exclusif aux nouvelles collections",
                  "Suivi de commande en temps réel",
                  "Offres spéciales pour les membres",
-                 "Support artisanat local direct"
+                 "Support direct aux vendeurs locaux"
                ].map((text, i) => (
                  <div key={i} className="flex items-center gap-3">
                     <CheckCircle2 size={20} className="text-slate-900" />
@@ -235,6 +262,84 @@ export default function RegisterPage() {
               {errors.address && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.address.message}</p>}
             </div>
 
+            <div className="md:col-span-2 p-4 bg-emerald-50/50 rounded-[24px] border border-emerald-100/50 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                    <Store size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Partenariat</p>
+                    <h3 className="text-sm font-black text-slate-900 tracking-tight">Devenir Vendeur</h3>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    {...register("isSeller")}
+                    className="sr-only peer" 
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+              </div>
+
+              <AnimatePresence>
+                {isSeller && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="space-y-4 pt-4 border-t border-emerald-100/50 overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la Boutique</label>
+                        <div className="relative group">
+                          <Store size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                          <input
+                            {...register("shopName")}
+                            placeholder="Nom de votre boutique"
+                            className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm ${
+                              errors.shopName ? "border-red-500" : "border-slate-200 focus:border-emerald-500"
+                            }`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Spécialité</label>
+                        <div className="relative group">
+                          <Briefcase size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                          <input
+                            {...register("specialty")}
+                            placeholder="Cordonnerie, Bijouterie..."
+                            className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm ${
+                              errors.specialty ? "border-red-500" : "border-slate-200 focus:border-emerald-500"
+                            }`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2 space-y-1">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Présentation (Bio)</label>
+                        <div className="relative group">
+                          <FileText size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                          <textarea
+                            {...register("bio")}
+                            rows={3}
+                            placeholder="Parlez-nous de votre savoir-faire..."
+                            className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm resize-none ${
+                              errors.bio ? "border-red-500" : "border-slate-200 focus:border-emerald-500"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div className="md:col-span-2 flex items-start gap-3 p-3 bg-slate-100 rounded-[18px]">
               <input type="checkbox" id="terms" required className="mt-1 w-4 h-4 accent-brand-green rounded" />
               <label htmlFor="terms" className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
@@ -245,9 +350,13 @@ export default function RegisterPage() {
             <button
                 type="submit"
                 disabled={loading}
-                className="md:col-span-2 w-full py-4 bg-brand-green text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-[24px] transition-all shadow-xl shadow-brand-green/30 hover:shadow-brand-green/40 active:scale-95 flex items-center justify-center gap-2"
+                className={`md:col-span-2 w-full py-4 font-black text-[10px] uppercase tracking-[0.2em] rounded-[24px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 ${
+                  isSeller 
+                    ? "bg-emerald-500 shadow-emerald-500/30 hover:shadow-emerald-500/40" 
+                    : "bg-brand-green shadow-brand-green/30 hover:shadow-brand-green/40"
+                } text-white`}
               >
-                {loading ? "Création en cours..." : "Créer mon compte"}
+                {loading ? "Création en cours..." : isSeller ? "Ouvrir ma boutique" : "Créer mon compte"}
                 {loading && <Sparkles size={14} className="animate-spin" />}
               </button>
           </form>
