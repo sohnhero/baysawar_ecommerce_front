@@ -19,7 +19,8 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
-  Filter
+  Filter,
+  MapPin
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
