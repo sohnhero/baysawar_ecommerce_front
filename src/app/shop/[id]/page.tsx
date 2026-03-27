@@ -27,6 +27,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [canReview, setCanReview] = useState(false);
+  const [checkingEligibility, setCheckingEligibility] = useState(true);
 
   const [related, setRelated] = useState<any[]>([]);
 
@@ -72,6 +74,27 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   })) || [];
 
   const currentUserReview = user ? reviews.find((r: any) => r.userId === user.id) : null;
+
+  useEffect(() => {
+    const checkEligibility = async () => {
+      if (!user) {
+        setCanReview(false);
+        setCheckingEligibility(false);
+        return;
+      }
+      try {
+        const { canReview } = await api.get<{ canReview: boolean }>(`/reviews/check-eligibility/${id}`);
+        setCanReview(canReview);
+      } catch (error) {
+        console.error("Failed to check review eligibility:", error);
+        setCanReview(false);
+      } finally {
+        setCheckingEligibility(false);
+      }
+    };
+
+    checkEligibility();
+  }, [id, user]);
 
   useEffect(() => {
     if (currentUserReview) {
@@ -416,7 +439,33 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {/* Form */}
             <div className="lg:col-span-1">
               {user ? (
-                user.role !== 'admin' ? (
+                user.role === 'admin' ? (
+                  <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 text-center">
+                    <p className="text-sm font-bold text-slate-400 mb-2 italic">Interface d&apos;administration</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Les administrateurs ne peuvent pas laisser d&apos;avis.
+                    </p>
+                  </div>
+                ) : isOwnProduct ? (
+                  <div className="bg-brand-blue/5 rounded-[32px] p-8 border border-brand-blue/10 text-center">
+                    <p className="text-sm font-bold text-brand-blue mb-2 italic">Votre produit</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Vous ne pouvez pas laisser d&apos;avis sur vos propres produits.
+                    </p>
+                  </div>
+                ) : isOwnProduct ? (
+                  <div className="bg-brand-blue/5 rounded-[32px] p-8 border border-brand-blue/10 text-center">
+                    <p className="text-sm font-bold text-brand-blue mb-2 italic">Votre produit</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Vous ne pouvez pas laisser d&apos;avis sur vos propres produits.
+                    </p>
+                  </div>
+                ) : checkingEligibility ? (
+                  <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 flex flex-col items-center justify-center gap-3 animate-pulse">
+                    <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-brand-green animate-spin" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vérification...</p>
+                  </div>
+                ) : canReview ? (
                   <div className="bg-white rounded-[32px] p-8 border border-border-color shadow-sm sticky top-24">
                     <h3 className="font-heading font-black text-lg mb-2">
                       {currentUserReview ? "Modifier votre avis" : "Laisser un avis"}
@@ -503,18 +552,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       </div>
                     </form>
                   </div>
-                ) : isOwnProduct ? (
-                  <div className="bg-brand-blue/5 rounded-[32px] p-8 border border-brand-blue/10 text-center">
-                    <p className="text-sm font-bold text-brand-blue mb-2 italic">Votre produit</p>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                      Vous ne pouvez pas laisser d&apos;avis sur vos propres produits.
-                    </p>
-                  </div>
                 ) : (
-                  <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 text-center">
-                    <p className="text-sm font-bold text-slate-400 mb-2 italic">Interface d&apos;administration</p>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                      Les administrateurs ne peuvent pas laisser d&apos;avis.
+                  <div className="bg-orange-50 rounded-[32px] p-8 border border-orange-100 text-center">
+                    <p className="text-2xl mb-2">🛍️</p>
+                    <p className="text-sm font-bold text-orange-700 mb-2 italic">Achat non vérifié</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-orange-900/60 leading-relaxed">
+                      Seuls les clients ayant acheté et reçu ce produit peuvent laisser un avis.
                     </p>
                   </div>
                 )
