@@ -141,24 +141,24 @@ export default function Footer() {
           {Object.entries(footerLinks)
             .filter(([title]) => title !== "Entreprise")
             .map(([title, links]) => (
-            <div key={title}>
-              <h4 className="font-heading font-semibold text-sm mb-4 uppercase tracking-wider text-white/70">
-                {title}
-              </h4>
-              <ul className="space-y-2.5">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-white/50 hover:text-white transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+              <div key={title}>
+                <h4 className="font-heading font-semibold text-sm mb-4 uppercase tracking-wider text-white/70">
+                  {title}
+                </h4>
+                <ul className="space-y-2.5">
+                  {links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-sm text-white/50 hover:text-white transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
         </div>
       </div>
 
@@ -169,7 +169,24 @@ export default function Footer() {
             © 2026 Baysawarr. Tous droits réservés.
           </p>
           <p className="text-xs text-white/40 flex items-center gap-1">
-            Fait au Sénégal par Pogba & Sohntech
+            Fait au Sénégal par{" "}
+            <a 
+              href="https://www.linkedin.com/in/ahmady-ibrahima-guisse-a7a198152" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-brand-green transition-colors underline decoration-brand-green/30 underline-offset-2"
+            >
+              Ibrahima Guissé
+            </a>
+            {" "} & {" "}
+            <a 
+              href="https://www.linkedin.com/in/ndiaga-l-4a7581139/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-brand-green transition-colors underline decoration-brand-green/30 underline-offset-2"
+            >
+              Sohntech
+            </a>
           </p>
         </div>
       </div>
