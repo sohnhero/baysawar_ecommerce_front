@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: any = {
   transpilePackages: ["jspdf", "fflate"],
   experimental: {},
+  turbopack: {
+    resolveAlias: {
+      fflate: "fflate/browser",
+    },
+  },
   webpack: (config: any) => {
     config.resolve.alias = {
       ...config.resolve.alias,
