@@ -103,7 +103,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="h-screen bg-slate-50 flex overflow-hidden">
+    <div className="min-h-screen lg:h-screen bg-slate-50 flex overflow-x-hidden lg:overflow-hidden">
       {/* Visual Side (Hidden on Mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-brand-green">
         <Image
@@ -165,7 +165,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Form Side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:px-12 relative">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:px-12 relative lg:overflow-y-auto no-scrollbar pb-32 lg:pb-6 font-sans">
         <motion.div 
           key={step}
           initial={{ opacity: 0, x: 20 }}

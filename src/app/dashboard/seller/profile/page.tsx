@@ -271,22 +271,26 @@ export default function SellerProfilePage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
              <button
                type="submit"
                disabled={saving || uploading}
-               className="w-full py-5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-3"
+               className="w-full py-6 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-[28px] font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center px-8 group"
              >
-               {saving ? (
-                 <Loader2 size={16} className="animate-spin" />
-               ) : (
-                 <Save size={16} />
-               )}
-               {saving ? "Sauvegarde..." : "Enregistrer les modifications"}
+               <div className="flex items-center gap-4 transition-transform group-hover:scale-105">
+                 {saving ? (
+                   <Loader2 size={20} className="animate-spin" />
+                 ) : (
+                   <Save size={20} className="shrink-0" />
+                 )}
+                 <span className="text-center leading-tight">
+                   {saving ? "Sauvegarde..." : "Enregistrer les modifications"}
+                 </span>
+               </div>
              </button>
              
-             <p className="text-center text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-4">
-                Dernière mise à jour : {artisan?.updatedAt ? new Date(artisan.updatedAt).toLocaleDateString() : "Jamais"}
+             <p className="text-center text-[8px] font-black text-slate-400 uppercase tracking-widest mt-6">
+                Dernière mise à jour : {artisan?.updatedAt ? new Date(artisan.updatedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "Jamais"}
              </p>
           </div>
 
