@@ -169,19 +169,19 @@ export default function Footer() {
             © 2026 Baysawarr. Tous droits réservés.
           </p>
           <p className="text-xs text-white/40 flex items-center gap-1">
-            © Fait au Sénégal par{" "}
-            <a 
-              href="https://www.linkedin.com/in/ahmady-ibrahima-guisse-a7a198152" 
-              target="_blank" 
+            © Développé par{" "}
+            <a
+              href="https://www.linkedin.com/in/ahmady-ibrahima-guisse-a7a198152"
+              target="_blank"
               rel="noopener noreferrer"
               className="hover:text-brand-green transition-colors underline decoration-brand-green/30 underline-offset-2"
             >
               Ibrahima Guissé
             </a>
             {" "} & {" "}
-            <a 
-              href="https://www.linkedin.com/in/ndiaga-l-4a7581139/" 
-              target="_blank" 
+            <a
+              href="https://www.linkedin.com/in/ndiaga-l-4a7581139/"
+              target="_blank"
               rel="noopener noreferrer"
               className="hover:text-brand-green transition-colors underline decoration-brand-green/30 underline-offset-2"
             >
