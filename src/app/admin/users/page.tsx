@@ -327,7 +327,7 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filtered.map((user: any, i: number) => (
+                {pagedUsers.map((user: any, i: number) => (
                   <motion.tr 
                     key={user.id || i}
                     initial={{ opacity: 0 }}

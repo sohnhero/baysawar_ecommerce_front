@@ -303,7 +303,16 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
                 })}
               </nav>
 
-              <div className="p-8">
+              <div className="px-8 pb-4 space-y-4">
+                <Link
+                  href="/"
+                  onClick={() => setSidebarOpen(false)}
+                  className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest"
+                >
+                  <ArrowLeft size={16} />
+                  Retour à la boutique
+                </Link>
+                
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
                   className="w-full flex items-center justify-center gap-3 py-4 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest"

@@ -19,7 +19,9 @@ import {
   Upload,
   Loader2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ArrowLeft,
+  ArrowRight
 } from "lucide-react";
 import { products as initialProducts } from "@/data/products";
 import Link from "next/link";
@@ -41,6 +43,10 @@ export default function AdminProductsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Tous");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const toggleRow = (id: string) => {
     const next = new Set(expandedRows);
@@ -188,6 +194,14 @@ export default function AdminProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const pagedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategory]);
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -249,7 +263,7 @@ export default function AdminProductsPage() {
 
         {/* Mobile-Friendly Cards (Visible on mobile only) */}
         <div className="md:hidden space-y-4 pb-12">
-          {filtered.map((product: any, i: number) => {
+          {pagedProducts.map((product: any, i: number) => {
             const isExpanded = expandedRows.has(product.id);
             const stock = product.stock ?? 0;
             let statusColor = "bg-emerald-50 text-emerald-700 border-emerald-100";
@@ -390,7 +404,7 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filtered.map((product: any, i: number) => (
+                {pagedProducts.map((product: any, i: number) => (
                   <motion.tr 
                     key={product.id || i}
                     initial={{ opacity: 0 }}
@@ -472,16 +486,30 @@ export default function AdminProductsPage() {
             </table>
           </div>
           
-          <div className="px-6 py-4 border-t border-slate-50 flex items-center justify-between bg-slate-50/20">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{filtered.length} résultats</p>
-            <div className="flex items-center gap-1">
-              {[1, 2].map((n: number) => (
-                <button key={n} className={`w-8 h-8 rounded-lg font-black text-[10px] transition-all ${n === 1 ? "bg-brand-blue text-white" : "bg-white border border-slate-100 text-slate-400"}`}>
-                  {n}
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4">
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                Page <span className="text-slate-900 font-black">{currentPage}</span> sur <span className="text-slate-900 font-black">{totalPages}</span>
+              </p>
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                >
+                  <ArrowLeft size={16} />
                 </button>
-              ))}
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

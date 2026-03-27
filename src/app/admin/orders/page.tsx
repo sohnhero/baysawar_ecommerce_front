@@ -350,7 +350,7 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredOrders.map((order: any, i: number) => (
+                {pagedOrders.map((order: any, i: number) => (
                   <motion.tr
                     key={order.dbId || i}
                     initial={{ opacity: 0 }}

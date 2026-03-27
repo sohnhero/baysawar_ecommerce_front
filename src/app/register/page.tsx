@@ -65,7 +65,8 @@ export default function RegisterPage() {
   const nextStep = async () => {
     let fieldsToValidate: (keyof RegisterForm)[] = [];
     if (step === 1) fieldsToValidate = ["name", "email", "phone"];
-    if (step === 2) fieldsToValidate = ["password", "address"];
+    if (step === 2) fieldsToValidate = ["password", "isSeller"];
+    if (step === 3) fieldsToValidate = ["address"];
     
     const isValid = await trigger(fieldsToValidate);
     if (isValid) setStep(prev => prev + 1);
@@ -178,20 +179,23 @@ export default function RegisterPage() {
             </Link>
             
             <h1 className="text-3xl font-black text-slate-900 tracking-tighter mb-2">
-              {step === 1 ? "Commençons !" : step === 2 ? "Presque prêt" : "Votre Boutique"}
+              {step === 1 ? "Commençons !" : step === 2 ? "Sécurité" : step === 3 ? "Localisation" : "Votre Boutique"}
             </h1>
             <p className="text-slate-500 font-medium text-xs">
-              {step === 1 ? "Parlez-nous un peu de vous." : step === 2 ? "Sécurisez votre compte et choisissez votre rôle." : "Personnalisez votre espace de vente."}
+              {step === 1 ? "Parlez-nous un peu de vous." : step === 2 ? "Sécurisez votre compte et choisissez votre rôle." : step === 3 ? "Dites-nous où vous résidez." : "Personnalisez votre espace de vente."}
             </p>
 
-            {/* Progress dots */}
-            <div className="flex items-center justify-center lg:justify-start gap-2 mt-6">
-              {[1, 2, 3].map((num) => (
-                (num < 3 || isSeller) && (
-                  <div 
-                    key={num} 
-                    className={`h-1 rounded-full transition-all duration-500 ${step === num ? "w-8 bg-brand-green" : "w-2 bg-slate-200"}`} 
-                  />
+            {/* Progress Bar */}
+            <div className="mt-8 flex items-center justify-center lg:justify-start gap-1">
+              {[1, 2, 3, 4].map((num) => (
+                (num < 4 || isSeller) && (
+                   <div key={num} className="flex-1 flex items-center gap-1">
+                      <div 
+                        className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
+                          step >= num ? "bg-brand-green flex-1" : "bg-slate-200 w-4"
+                        }`} 
+                      />
+                   </div>
                 )
               ))}
             </div>
@@ -260,7 +264,7 @@ export default function RegisterPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   key="step2"
-                  className="space-y-5"
+                  className="space-y-6"
                 >
                   <div className="space-y-1">
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Mot de Passe</label>
@@ -283,22 +287,6 @@ export default function RegisterPage() {
                       </button>
                     </div>
                     {errors.password && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.password.message}</p>}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse de résidence</label>
-                    <div className="relative group">
-                      <MapPin size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-brand-green transition-colors" />
-                      <textarea
-                        {...register("address")}
-                        rows={2}
-                        placeholder="Ex: Sacré-Cœur, Villa 123, Dakar"
-                        className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm resize-none ${
-                          errors.address ? "border-red-500" : "border-slate-100 focus:border-brand-green shadow-sm"
-                        }`}
-                      />
-                    </div>
-                    {errors.address && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.address.message}</p>}
                   </div>
 
                   <div className="p-5 bg-emerald-50/50 rounded-[28px] border border-emerald-100/50">
@@ -325,13 +313,37 @@ export default function RegisterPage() {
                 </motion.div>
               )}
 
-              {step === 3 && isSeller && (
+              {step === 3 && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   key="step3"
-                  className="space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar pr-1"
+                  className="space-y-1"
+                >
+                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse de résidence</label>
+                  <div className="relative group">
+                    <MapPin size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                    <textarea
+                      {...register("address")}
+                      rows={3}
+                      placeholder="Ex: Sacré-Cœur, Villa 123, Dakar"
+                      className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm resize-none ${
+                        errors.address ? "border-red-500" : "border-slate-100 focus:border-brand-green shadow-sm"
+                      }`}
+                    />
+                  </div>
+                  {errors.address && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.address.message}</p>}
+                </motion.div>
+              )}
+
+              {step === 4 && isSeller && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  key="step4"
+                  className="space-y-4 max-h-[45vh] lg:max-h-[50vh] overflow-y-auto no-scrollbar pr-1"
                 >
                   <div className="space-y-1">
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la Boutique</label>
@@ -419,9 +431,9 @@ export default function RegisterPage() {
             </AnimatePresence>
 
             {/* Actions */}
-            <div className="pt-6 space-y-4">
-              {step === 2 && !isSeller && (
-                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[20px] border border-slate-100">
+            <div className="lg:pt-6 space-y-4">
+              {step === 3 && !isSeller && (
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[20px] border border-slate-100 mb-4 lg:mb-0">
                   <input type="checkbox" id="terms" required className="mt-1 w-4 h-4 accent-brand-green rounded" />
                   <label htmlFor="terms" className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
                     J&apos;accepte les <Link href="#" className="text-brand-green font-black">Conditions</Link> et la <Link href="#" className="text-brand-green font-black">Politique</Link>.
@@ -429,8 +441,8 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              {step === 3 && (
-                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[20px] border border-slate-100">
+              {step === 4 && (
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[20px] border border-slate-100 mb-4 lg:mb-0">
                   <input type="checkbox" id="terms-seller" required className="mt-1 w-4 h-4 accent-emerald-500 rounded" />
                   <label htmlFor="terms-seller" className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
                     J&apos;accepte les <Link href="#" className="text-emerald-500 font-black">Conditions Vendeur</Link>.
@@ -438,18 +450,18 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <div className="flex gap-4">
+              <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-slate-100 lg:relative lg:p-0 lg:bg-transparent lg:border-t-0 flex gap-4">
                 {step > 1 && (
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="w-20 h-14 bg-white border border-slate-100 rounded-[24px] flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all shadow-sm"
+                    className="w-20 lg:w-20 h-14 bg-white border border-slate-200 lg:border-slate-100 rounded-[24px] flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all shadow-lg lg:shadow-sm"
                   >
                     <ArrowLeft size={18} />
                   </button>
                 )}
                 
-                {((step < 2) || (step === 2 && isSeller)) ? (
+                {((step < 3) || (step === 3 && isSeller)) ? (
                   <button
                     type="button"
                     onClick={nextStep}
