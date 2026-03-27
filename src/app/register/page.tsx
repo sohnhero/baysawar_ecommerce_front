@@ -10,24 +10,40 @@ import { toast } from "react-toastify";
 import { AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Le nom doit faire au moins 2 caractères"),
+  email: z.string().email("Format d'e-mail invalide"),
+  phone: z.string().regex(/^(77|78|76|70|75)[0-9]{7}$/, "Numéro de téléphone sénégalais invalide (ex: 771234567)"),
+  address: z.string().min(5, "L'adresse est trop courte"),
+  password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères"),
+});
+
+type RegisterForm = z.infer<typeof registerSchema>;
+
 export default function RegisterPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = async (data: RegisterForm) => {
     setLoading(true);
     setError("");
 
     try {
-      await api.post("/auth/register", { name, email, password, phone, address });
+      await api.post("/auth/register", data);
       toast.success("Compte créé avec succès ! Veuillez vous connecter.");
       router.push("/login?registered=true");
     } catch (err: any) {
@@ -134,20 +150,20 @@ export default function RegisterPage() {
             </AnimatePresence>
           </div>
 
-          <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2 space-y-1">
               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom Complet</label>
               <div className="relative group">
                 <User size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register("name")}
                   placeholder="Amadou Diallo"
-                  className="w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                    errors.name ? "border-red-500" : "border-slate-200 focus:border-brand-green"
+                  }`}
                 />
               </div>
+              {errors.name && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.name.message}</p>}
             </div>
 
             <div className="md:col-span-2 space-y-1">
@@ -155,14 +171,14 @@ export default function RegisterPage() {
               <div className="relative group">
                 <Mail size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   placeholder="nom@exemple.com"
-                  className="w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                    errors.email ? "border-red-500" : "border-slate-200 focus:border-brand-green"
+                  }`}
                 />
               </div>
+              {errors.email && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1">
@@ -170,14 +186,14 @@ export default function RegisterPage() {
               <div className="relative group">
                 <Phone size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+221 ..."
-                  className="w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  {...register("phone")}
+                  placeholder="77 123 45 67"
+                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                    errors.phone ? "border-red-500" : "border-slate-200 focus:border-brand-green"
+                  }`}
                 />
               </div>
+              {errors.phone && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.phone.message}</p>}
             </div>
 
             <div className="space-y-1">
@@ -186,11 +202,11 @@ export default function RegisterPage() {
                 <Lock size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                   placeholder="••••••••"
-                  className="w-full pl-14 pr-12 py-2.5 rounded-[20px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm"
+                  className={`w-full pl-14 pr-12 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                    errors.password ? "border-red-500" : "border-slate-200 focus:border-brand-green"
+                  }`}
                 />
                 <button
                   type="button"
@@ -200,6 +216,7 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {errors.password && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.password.message}</p>}
             </div>
 
             <div className="md:col-span-2 space-y-1">
@@ -207,14 +224,15 @@ export default function RegisterPage() {
               <div className="relative group">
                 <MapPin size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-brand-green transition-colors" />
                 <textarea
-                  required
+                  {...register("address")}
                   rows={2}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
                   placeholder="Ex: Sacré-Cœur, Villa 123, Dakar"
-                  className="w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border border-slate-200 focus:outline-none focus:border-brand-green focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm resize-none"
+                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm resize-none ${
+                    errors.address ? "border-red-500" : "border-slate-200 focus:border-brand-green"
+                  }`}
                 />
               </div>
+              {errors.address && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.address.message}</p>}
             </div>
 
             <div className="md:col-span-2 flex items-start gap-3 p-3 bg-slate-100 rounded-[18px]">

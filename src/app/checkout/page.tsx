@@ -30,6 +30,15 @@ const deliveryMethods = [
 
 type DeliveryMethod = typeof deliveryMethods[0];
 
+import { z } from "zod";
+
+const shippingSchema = z.object({
+  name: z.string().min(2, "Le nom doit faire au moins 2 caractères"),
+  phone: z.string().regex(/^(77|78|76|70|75)[0-9]{7}$/, "Numéro de téléphone sénégalais invalide (77xxxxxxx)"),
+  address: z.string().min(5, "L'adresse est trop courte"),
+  city: z.string().min(1, "La ville est requise"),
+});
+
 export default function CheckoutPage() {
   const [step, setStep] = useState(0);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod | null>(null);
@@ -108,20 +117,23 @@ export default function CheckoutPage() {
 
 
   const validateStep = () => {
-    const newErrors: Record<string, string> = {};
-    
     if (step === 0) {
-      if (!formData.name.trim()) newErrors.name = "Le nom est requis";
-      if (!formData.phone.trim()) {
-        newErrors.phone = "Le téléphone est requis";
-      } else if (formData.phone.replace(/[^0-9]/g, "").length < 8) {
-        newErrors.phone = "Le numéro doit contenir au moins 8 chiffres";
+      const result = shippingSchema.safeParse(formData);
+      if (!result.success) {
+        const newErrors: Record<string, string> = {};
+        result.error.issues.forEach((issue) => {
+          const path = issue.path[0];
+          if (path) {
+            newErrors[path.toString()] = issue.message;
+          }
+        });
+        setErrors(newErrors);
+        return false;
       }
-      if (!formData.address.trim()) newErrors.address = "L'adresse est requise";
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({});
+    return true;
   };
 
   const handleNext = () => {

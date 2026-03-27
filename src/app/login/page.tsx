@@ -10,22 +10,38 @@ import Image from "next/image";
 import { toast } from "react-toastify";
 import { api } from "@/lib/api";
 
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Format d'e-mail invalide"),
+  password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginForm) => {
     setError("");
     setLoading(true);
 
     try {
-      const result = await api.post<{ user: any; token: string }>("/auth/login", { email, password });
+      const result = await api.post<{ user: any; token: string }>("/auth/login", data);
       login(result.user, result.token);
       toast.success(`Heureux de vous revoir, ${result.user.name.split(' ')[0]} !`);
       router.push(result.user.role === "admin" ? "/admin" : "/");
@@ -135,20 +151,20 @@ export default function LoginPage() {
             </AnimatePresence>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse Email</label>
               <div className="relative group">
                 <Mail size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-blue transition-colors" />
                 <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   placeholder="nom@exemple.com"
-                  className="w-full pl-16 pr-8 py-5 rounded-[28px] bg-white border border-slate-200 focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 transition-all font-bold text-slate-900"
+                  className={`w-full pl-16 pr-8 py-5 rounded-[28px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-blue/5 transition-all font-bold text-slate-900 ${
+                    errors.email ? "border-red-500" : "border-slate-200 focus:border-brand-blue"
+                  }`}
                 />
               </div>
+              {errors.email && <p className="text-[9px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -160,11 +176,11 @@ export default function LoginPage() {
                 <Lock size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-blue transition-colors" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                   placeholder="••••••••••••"
-                  className="w-full pl-16 pr-14 py-5 rounded-[28px] bg-white border border-slate-200 focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 transition-all font-bold text-slate-900"
+                  className={`w-full pl-16 pr-14 py-5 rounded-[28px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-blue/5 transition-all font-bold text-slate-900 ${
+                    errors.password ? "border-red-500" : "border-slate-200 focus:border-brand-blue"
+                  }`}
                 />
                 <button
                   type="button"
@@ -174,6 +190,7 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+              {errors.password && <p className="text-[9px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.password.message}</p>}
             </div>
 
             <button

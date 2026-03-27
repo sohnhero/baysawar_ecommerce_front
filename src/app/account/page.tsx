@@ -27,6 +27,17 @@ const statusLabels: Record<string, string> = {
 import { AnimatePresence } from "framer-motion";
 import { Camera, Loader2, X, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const profileSchema = z.object({
+  name: z.string().min(2, "Le nom doit faire au moins 2 caractères"),
+  phone: z.string().regex(/^(77|78|76|70|75)[0-9]{7}$/, "Numéro de téléphone sénégalais invalide (77xxxxxxx)"),
+  address: z.string().min(5, "L'adresse est trop courte"),
+});
+
+type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function AccountPage() {
   const [tab, setTab] = useState<"profile" | "orders">("profile");
@@ -35,11 +46,31 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [editForm, setEditForm] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
-    address: user?.address || ""
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ProfileForm>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: user?.name || "",
+      phone: user?.phone || "",
+      address: user?.address || "",
+    },
   });
+
+  // Sync with user data
+  useEffect(() => {
+    if (user) {
+      reset({
+        name: user.name || "",
+        phone: user.phone || "",
+        address: user.address || "",
+      });
+    }
+  }, [user, reset]);
 
   useEffect(() => {
     if (tab === "orders") {
@@ -80,11 +111,10 @@ export default function AccountPage() {
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onUpdateProfile = async (data: ProfileForm) => {
     setLoading(true);
     try {
-      const updatedUser = await api.put<any>("/users/profile", editForm);
+      const updatedUser = await api.put<any>("/users/profile", data);
       const token = localStorage.getItem("baysawarr-token") || "";
       login(updatedUser, token);
       toast.success("Profil mis à jour");
@@ -176,11 +206,6 @@ export default function AccountPage() {
               </h2>
               <button
                 onClick={() => {
-                  setEditForm({
-                    name: user?.name || "",
-                    phone: user?.phone || "",
-                    address: user?.address || ""
-                  });
                   setShowEditModal(true);
                 }}
                 className="flex items-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-brand-green bg-brand-green/5 border border-brand-green/20 rounded-2xl hover:bg-brand-green hover:text-white transition-all shadow-lg shadow-brand-green/5 active:scale-95"
@@ -335,19 +360,20 @@ export default function AccountPage() {
                   </button>
                 </div>
 
-                <form onSubmit={handleUpdateProfile} className="space-y-5">
+                <form onSubmit={handleSubmit(onUpdateProfile)} className="space-y-5">
                   <div>
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Nom complet</label>
                     <div className="relative">
                       <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
-                        required
-                        value={editForm.name}
-                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                        className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-brand-green transition-all"
+                        {...register("name")}
+                        className={`w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border text-sm font-bold focus:outline-none transition-all ${
+                          errors.name ? "border-red-500" : "border-slate-100 focus:border-brand-green"
+                        }`}
                       />
                     </div>
+                    {errors.name && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{errors.name.message}</p>}
                   </div>
 
                   <div>
@@ -356,12 +382,14 @@ export default function AccountPage() {
                       <Phone size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="tel"
-                        value={editForm.phone}
-                        onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
-                        placeholder="+221 ..."
-                        className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-brand-green transition-all"
+                        {...register("phone")}
+                        placeholder="77 123 45 67"
+                        className={`w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border text-sm font-bold focus:outline-none transition-all ${
+                          errors.phone ? "border-red-500" : "border-slate-100 focus:border-brand-green"
+                        }`}
                       />
                     </div>
+                    {errors.phone && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{errors.phone.message}</p>}
                   </div>
 
                   <div>
@@ -369,13 +397,15 @@ export default function AccountPage() {
                     <div className="relative">
                       <MapPin size={14} className="absolute left-4 top-4 text-slate-400" />
                       <textarea
+                        {...register("address")}
                         rows={3}
-                        value={editForm.address}
-                        onChange={e => setEditForm({ ...editForm, address: e.target.value })}
                         placeholder="Quartier, Rue, Porte..."
-                        className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-brand-green transition-all resize-none"
+                        className={`w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border text-sm font-bold focus:outline-none transition-all resize-none ${
+                          errors.address ? "border-red-500" : "border-slate-100 focus:border-brand-green"
+                        }`}
                       />
                     </div>
+                    {errors.address && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{errors.address.message}</p>}
                   </div>
 
                   <div className="pt-4 flex gap-3">

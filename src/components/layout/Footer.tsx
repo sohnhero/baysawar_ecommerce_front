@@ -21,6 +21,13 @@ const footerLinks = {
   ],
 };
 
+import { api } from "@/lib/api";
+import { z } from "zod";
+
+const newsletterSchema = z.object({
+  email: z.string().email("Format d'e-mail invalide"),
+});
+
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -29,28 +36,25 @@ export default function Footer() {
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Front-end validation
+    const result = newsletterSchema.safeParse({ email });
+    if (!result.success) {
+      setError(result.error.issues[0].message);
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/newsletter/subscribe`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSubscribed(true);
-        setEmail("");
-        setTimeout(() => setSubscribed(false), 5000);
-      } else {
-        setError(data.error || "Une erreur est survenue");
-        setTimeout(() => setError(null), 5000);
-      }
-    } catch (error) {
+      await api.post("/newsletter/subscribe", { email });
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 5000);
+    } catch (error: any) {
       console.error("Newsletter subscription failed:", error);
-      setError("Erreur de connexion au serveur");
+      setError(error.message || "Une erreur est survenue");
       setTimeout(() => setError(null), 5000);
     } finally {
       setLoading(false);

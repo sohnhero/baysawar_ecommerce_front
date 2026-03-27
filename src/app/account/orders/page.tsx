@@ -26,6 +26,7 @@ const statusStyles = {
 
 export default function ClientOrdersPage() {
   const [trackingOrder, setTrackingOrder] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,15 +44,17 @@ export default function ClientOrdersPage() {
     fetchOrders();
   }, []);
 
-  const handleCancelOrder = async (orderId: string) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) return;
+  const handleCancelOrder = async () => {
+    if (!cancellingOrderId) return;
 
     try {
-      await api.patch(`/orders/my/${orderId}/cancel`, {});
+      await api.patch(`/orders/my/${cancellingOrderId}/cancel`, {});
+      setCancellingOrderId(null);
       const data = await api.get<any[]>("/orders/my");
       setOrders(data);
     } catch (error: any) {
       console.error("Failed to cancel order:", error);
+      setCancellingOrderId(null);
     }
   };
 
@@ -153,7 +156,7 @@ export default function ClientOrdersPage() {
                     )}
                     {order.status === "pending" && (
                       <button
-                        onClick={() => handleCancelOrder(order.id)}
+                        onClick={() => setCancellingOrderId(order.id)}
                         className="w-full py-3 bg-red-50 text-red-500 border border-red-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all mt-1"
                       >
                         Annuler la commande
@@ -165,6 +168,48 @@ export default function ClientOrdersPage() {
             </motion.div>
           )))}
         </div>
+
+        {/* Cancellation Modal */}
+        <AnimatePresence>
+          {cancellingOrderId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setCancellingOrderId(null)}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="relative w-full max-w-md bg-background rounded-3xl border border-border-color shadow-2xl p-8 text-center"
+              >
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Package size={32} />
+                </div>
+                <h3 className="font-heading font-black text-2xl mb-2 text-brand-blue">Confirmer l&apos;annulation</h3>
+                <p className="text-muted text-sm mb-8">
+                  Êtes-vous sûr de vouloir annuler la commande <span className="font-bold text-brand-blue">#{cancellingOrderId.substring(0,8).toUpperCase()}</span> ? Cette action est irréversible.
+                </p>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => setCancellingOrderId(null)}
+                    className="py-4 border border-border-color rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-surface transition-all"
+                  >
+                    Non, garder
+                  </button>
+                  <button 
+                    onClick={handleCancelOrder}
+                    className="py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                  >
+                    Oui, annuler
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Tracking Modal */}
         <AnimatePresence>
