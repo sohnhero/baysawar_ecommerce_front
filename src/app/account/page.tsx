@@ -42,6 +42,8 @@ const sellerSchema = z.object({
   shopName: z.string().min(2, "Le nom de la boutique est trop court"),
   specialty: z.string().min(2, "Veuillez préciser votre spécialité"),
   bio: z.string().min(10, "La présentation doit faire au moins 10 caractères"),
+  location: z.string().min(5, "Veuillez préciser la localisation de la boutique"),
+  image: z.string().optional(),
 });
 
 type SellerForm = z.infer<typeof sellerSchema>;
@@ -338,7 +340,9 @@ export default function AccountPage() {
                           sellerForm.reset({
                             shopName: artisan.name,
                             specialty: artisan.specialty,
-                            bio: artisan.bio
+                            bio: artisan.bio,
+                            location: artisan.location,
+                            image: artisan.image
                           });
                           setShowSellerModal(true);
                         }}
@@ -633,6 +637,61 @@ export default function AccountPage() {
                       />
                     </div>
                     {sellerForm.formState.errors.bio && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{sellerForm.formState.errors.bio.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Photo de la Boutique</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-100 flex items-center justify-center overflow-hidden relative">
+                        {sellerForm.watch("image") ? (
+                          <Image src={sellerForm.watch("image")!} alt="Shop" fill className="object-cover" />
+                        ) : (
+                          <Camera size={20} className="text-slate-300" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              toast.info("Importation...");
+                              const res = await api.upload<{ url: string }>("/upload", file);
+                              sellerForm.setValue("image", res.url);
+                              toast.success("Image importée !");
+                            } catch (error) {
+                              toast.error("Échec de l'importation");
+                            }
+                          }}
+                          className="hidden"
+                          id="modal-shop-image-upload"
+                        />
+                        <label
+                          htmlFor="modal-shop-image-upload"
+                          className="px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 cursor-pointer transition-all inline-block"
+                        >
+                          Choisir une image
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Localisation de la Boutique</label>
+                    <div className="relative">
+                      <MapPin size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        {...sellerForm.register("location")}
+                        placeholder="Ex: Dakar Plateau, Rue X"
+                        className={`w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border text-sm font-bold focus:outline-none transition-all ${
+                          sellerForm.formState.errors.location ? "border-red-500" : "border-slate-100 focus:border-emerald-500"
+                        }`}
+                      />
+                    </div>
+                    {sellerForm.formState.errors.location && <p className="text-[8px] text-red-500 font-bold ml-1 mt-1 uppercase tracking-tighter">{sellerForm.formState.errors.location.message}</p>}
                   </div>
 
                   <div className="pt-4 flex gap-3">

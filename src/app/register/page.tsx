@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, Phone, MapPin, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Store, Briefcase, FileText } from "lucide-react";
+import { Mail, Lock, User, Phone, MapPin, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Store, Briefcase, FileText, Camera } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { AnimatePresence } from "framer-motion";
@@ -21,6 +21,8 @@ const registerSchema = z.object({
   password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères"),
   isSeller: z.boolean(),
   shopName: z.string().optional(),
+  shopLocation: z.string().optional(),
+  shopImage: z.string().optional(),
   specialty: z.string().optional(),
   bio: z.string().optional(),
 }).refine((data) => {
@@ -66,7 +68,8 @@ export default function RegisterPage() {
           name: data.shopName,
           specialty: data.specialty,
           bio: data.bio,
-          location: data.address
+          location: data.shopLocation || data.address,
+          image: data.shopImage
         } : undefined
       };
       
@@ -316,6 +319,60 @@ export default function RegisterPage() {
                             className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm ${
                               errors.specialty ? "border-red-500" : "border-slate-200 focus:border-emerald-500"
                             }`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2 space-y-1">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Photo de la Boutique</label>
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden group/img relative">
+                            {watch("shopImage") ? (
+                              <Image src={watch("shopImage")!} alt="Shop" fill className="object-cover" />
+                            ) : (
+                              <Camera size={20} className="text-slate-300" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                try {
+                                  toast.info("Importation...");
+                                  const res = await api.upload<{ url: string }>("/upload", file);
+                                  // Update the form field directly
+                                  const shopImageField = register("shopImage");
+                                  shopImageField.onChange({ target: { value: res.url, name: "shopImage" } });
+                                  toast.success("Image importée !");
+                                } catch (error) {
+                                  toast.error("Échec de l'importation");
+                                }
+                              }}
+                              className="hidden"
+                              id="shop-image-upload"
+                            />
+                            <label
+                              htmlFor="shop-image-upload"
+                              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 cursor-pointer transition-all inline-block"
+                            >
+                              Choisir une image
+                            </label>
+                            <input type="hidden" {...register("shopImage")} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2 space-y-1">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Localisation de la Boutique</label>
+                        <div className="relative group">
+                          <MapPin size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                          <input
+                            {...register("shopLocation")}
+                            placeholder="Ex: Dakar Plateau, Rue X"
+                            className="w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border border-slate-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm focus:border-emerald-500"
                           />
                         </div>
                       </div>

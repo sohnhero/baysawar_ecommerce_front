@@ -27,6 +27,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard/seller", color: "text-brand-green" },
   { icon: Package, label: "Mes Produits", href: "/dashboard/seller/products", color: "text-amber-500" },
   { icon: ShoppingCart, label: "Mes Commandes", href: "/dashboard/seller/orders", color: "text-brand-blue" },
+  { icon: User, label: "Mon Profil", href: "/dashboard/seller/profile", color: "text-indigo-500" },
 ];
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
