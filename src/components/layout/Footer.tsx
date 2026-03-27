@@ -24,11 +24,13 @@ const footerLinks = {
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/newsletter/subscribe`, {
         method: "POST",
@@ -36,13 +38,20 @@ export default function Footer() {
         body: JSON.stringify({ email }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setSubscribed(true);
         setEmail("");
         setTimeout(() => setSubscribed(false), 5000);
+      } else {
+        setError(data.error || "Une erreur est survenue");
+        setTimeout(() => setError(null), 5000);
       }
     } catch (error) {
       console.error("Newsletter subscription failed:", error);
+      setError("Erreur de connexion au serveur");
+      setTimeout(() => setError(null), 5000);
     } finally {
       setLoading(false);
     }
@@ -60,6 +69,15 @@ export default function Footer() {
               <p className="text-white/60 text-sm">
                 Recevez nos offres exclusives et découvertes artisanales
               </p>
+              {error && (
+                <motion.p 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="text-red-400 text-[10px] font-bold mt-1 uppercase tracking-tight"
+                >
+                  {error}
+                </motion.p>
+              )}
             </div>
             <form onSubmit={handleSubscribe} className="flex w-full md:w-auto gap-2">
               {subscribed ? (
