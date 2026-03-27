@@ -22,6 +22,7 @@ import {
   MapPin,
   ExternalLink,
   ArrowRight,
+  ArrowLeft,
   ChevronDown,
   ChevronUp
 } from "lucide-react";
@@ -72,6 +73,10 @@ export default function AdminOrdersPage() {
   const [filter, setFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const toggleRow = (id: string) => {
     const next = new Set(expandedRows);
@@ -141,6 +146,14 @@ export default function AdminOrdersPage() {
     const matchesFilter = filter === "all" || order.status === filter;
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const pagedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filter]);
 
   const quickStats = [
     { label: "En cours", count: stats?.ordersByStatus?.pending || 0, color: "text-amber-600", bg: "bg-amber-50" },
@@ -222,7 +235,7 @@ export default function AdminOrdersPage() {
 
         {/* Mobile-Friendly Cards (Visible on mobile only) */}
         <div className="md:hidden space-y-4 pb-12">
-          {filteredOrders.map((order: any, i: number) => {
+          {pagedOrders.map((order: any, i: number) => {
             const isExpanded = expandedRows.has(order.dbId);
             const status = statusConfig[order.status] || { label: order.status, color: "bg-slate-50" };
 
@@ -382,6 +395,31 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4">
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                Page <span className="text-slate-900 font-black">{currentPage}</span> sur <span className="text-slate-900 font-black">{totalPages}</span>
+              </p>
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Compact Inspection Modal */}

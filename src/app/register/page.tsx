@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, Phone, MapPin, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Store, Briefcase, FileText, Camera } from "lucide-react";
+import { Mail, Lock, User, Phone, MapPin, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Store, Briefcase, FileText, Camera, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { AnimatePresence } from "framer-motion";
@@ -41,12 +41,14 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [step, setStep] = useState(1);
   const router = useRouter();
 
   const {
     register,
     handleSubmit,
     watch,
+    trigger,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -56,6 +58,20 @@ export default function RegisterPage() {
   });
 
   const isSeller = watch("isSeller");
+  const name = watch("name");
+  const email = watch("email");
+  const phone = watch("phone");
+
+  const nextStep = async () => {
+    let fieldsToValidate: (keyof RegisterForm)[] = [];
+    if (step === 1) fieldsToValidate = ["name", "email", "phone"];
+    if (step === 2) fieldsToValidate = ["password", "address"];
+    
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) setStep(prev => prev + 1);
+  };
+
+  const prevStep = () => setStep(prev => prev - 1);
 
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true);
@@ -101,11 +117,11 @@ export default function RegisterPage() {
           <Link href="/" className="flex items-center gap-3">
              <div className="relative w-12 h-12 rounded-lg overflow-hidden transition-transform hover:scale-105">
                 <Image 
-                  src="/logo_baysawarr.jpg" 
-                  alt="Baysawarr Logo" 
-                  fill 
-                  className="object-contain"
-                  priority
+                   src="/logo_baysawarr.jpg" 
+                   alt="Baysawarr Logo" 
+                   fill 
+                   className="object-contain"
+                   priority
                 />
              </div>
              <span className="text-white font-heading font-black text-2xl tracking-tighter">Baysa<span className="text-slate-900">warr</span></span>
@@ -148,287 +164,331 @@ export default function RegisterPage() {
       </div>
 
       {/* Form Side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:px-12 overflow-y-auto h-full scrollbar-none">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:px-12 relative">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          key={step}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
           className="w-full max-w-lg"
         >
-          {/* Back link */}
-          <Link href="/login" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-green mb-4 transition-all group">
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Retour à la connexion
-          </Link>
+          {/* Header & Step Indicator */}
+          <div className="mb-10 text-center lg:text-left">
+            <Link href="/login" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-green mb-6 transition-all group">
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Retour à la connexion
+            </Link>
+            
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter mb-2">
+              {step === 1 ? "Commençons !" : step === 2 ? "Presque prêt" : "Votre Boutique"}
+            </h1>
+            <p className="text-slate-500 font-medium text-xs">
+              {step === 1 ? "Parlez-nous un peu de vous." : step === 2 ? "Sécurisez votre compte et choisissez votre rôle." : "Personnalisez votre espace de vente."}
+            </p>
 
-          <div className="mb-4">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter mb-1">Créer un compte</h1>
-            <p className="text-slate-500 font-medium text-xs">Rejoignez-nous en quelques secondes.</p>
+            {/* Progress dots */}
+            <div className="flex items-center justify-center lg:justify-start gap-2 mt-6">
+              {[1, 2, 3].map((num) => (
+                (num < 3 || isSeller) && (
+                  <div 
+                    key={num} 
+                    className={`h-1 rounded-full transition-all duration-500 ${step === num ? "w-8 bg-brand-green" : "w-2 bg-slate-200"}`} 
+                  />
+                )
+              ))}
+            </div>
           </div>
 
-          <div className="h-10 mb-2">
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="p-3 rounded-[16px] bg-red-50 border border-red-100 text-red-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
+                  key="step1"
+                  className="space-y-4"
                 >
-                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  {error}
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom Complet</label>
+                    <div className="relative group">
+                      <User size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                      <input
+                        {...register("name")}
+                        placeholder="Amadou Diallo"
+                        className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                          errors.name ? "border-red-500" : "border-slate-100 focus:border-brand-green shadow-sm"
+                        }`}
+                      />
+                    </div>
+                    {errors.name && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.name.message}</p>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse Email</label>
+                    <div className="relative group">
+                      <Mail size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                      <input
+                        {...register("email")}
+                        placeholder="nom@exemple.com"
+                        className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                          errors.email ? "border-red-500" : "border-slate-100 focus:border-brand-green shadow-sm"
+                        }`}
+                      />
+                    </div>
+                    {errors.email && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.email.message}</p>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Téléphone</label>
+                    <div className="relative group">
+                      <Phone size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                      <input
+                        {...register("phone")}
+                        placeholder="77 123 45 67"
+                        className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                          errors.phone ? "border-red-500" : "border-slate-100 focus:border-brand-green shadow-sm"
+                        }`}
+                      />
+                    </div>
+                    {errors.phone && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.phone.message}</p>}
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 2 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  key="step2"
+                  className="space-y-5"
+                >
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Mot de Passe</label>
+                    <div className="relative group">
+                      <Lock size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        {...register("password")}
+                        placeholder="••••••••"
+                        className={`w-full pl-14 pr-12 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
+                          errors.password ? "border-red-500" : "border-slate-100 focus:border-brand-green shadow-sm"
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {errors.password && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.password.message}</p>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse de résidence</label>
+                    <div className="relative group">
+                      <MapPin size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-brand-green transition-colors" />
+                      <textarea
+                        {...register("address")}
+                        rows={2}
+                        placeholder="Ex: Sacré-Cœur, Villa 123, Dakar"
+                        className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm resize-none ${
+                          errors.address ? "border-red-500" : "border-slate-100 focus:border-brand-green shadow-sm"
+                        }`}
+                      />
+                    </div>
+                    {errors.address && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.address.message}</p>}
+                  </div>
+
+                  <div className="p-5 bg-emerald-50/50 rounded-[28px] border border-emerald-100/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                          <Store size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Partenariat</p>
+                          <h3 className="text-sm font-black text-slate-900 tracking-tight">Devenir Vendeur</h3>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          {...register("isSeller")}
+                          className="sr-only peer" 
+                        />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      </label>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 3 && isSeller && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  key="step3"
+                  className="space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar pr-1"
+                >
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la Boutique</label>
+                    <div className="relative group">
+                      <Store size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                      <input
+                        {...register("shopName")}
+                        placeholder="Ma Superbe Boutique"
+                        className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm ${
+                          errors.shopName ? "border-red-500" : "border-slate-100 focus:border-emerald-500 shadow-sm"
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Spécialité</label>
+                    <div className="relative group">
+                      <Briefcase size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                      <input
+                        {...register("specialty")}
+                        placeholder="Cordonnerie, Bijouterie..."
+                        className={`w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm ${
+                          errors.specialty ? "border-red-500" : "border-slate-100 focus:border-emerald-500 shadow-sm"
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Photo de la Boutique</label>
+                    <div className="flex items-center gap-4 bg-white p-3 rounded-[24px] border border-slate-100 shadow-sm">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden group/img relative">
+                        {watch("shopImage") ? (
+                          <Image src={watch("shopImage")!} alt="Shop" fill className="object-cover" />
+                        ) : (
+                          <Camera size={20} className="text-slate-300" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              toast.info("Importation...");
+                              const res = await api.upload<{ url: string }>("/upload", file);
+                              const shopImageField = register("shopImage");
+                              shopImageField.onChange({ target: { value: res.url, name: "shopImage" } });
+                              toast.success("Image importée !");
+                            } catch (error) {
+                              toast.error("Échec de l'importation");
+                            }
+                          }}
+                          className="hidden"
+                          id="shop-image-upload"
+                        />
+                        <label
+                          htmlFor="shop-image-upload"
+                          className="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 cursor-pointer transition-all inline-block"
+                        >
+                          Choisir Image
+                        </label>
+                        <input type="hidden" {...register("shopImage")} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Bio</label>
+                    <div className="relative group">
+                      <FileText size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                      <textarea
+                        {...register("bio")}
+                        rows={2}
+                        placeholder="Votre histoire ou savoir-faire..."
+                        className="w-full pl-14 pr-8 py-3.5 rounded-[24px] bg-white border border-slate-100 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm focus:border-emerald-500 resize-none shadow-sm"
+                      />
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom Complet</label>
-              <div className="relative group">
-                <User size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
-                <input
-                  {...register("name")}
-                  placeholder="Amadou Diallo"
-                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
-                    errors.name ? "border-red-500" : "border-slate-200 focus:border-brand-green"
-                  }`}
-                />
-              </div>
-              {errors.name && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.name.message}</p>}
-            </div>
-
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse Email</label>
-              <div className="relative group">
-                <Mail size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
-                <input
-                  {...register("email")}
-                  placeholder="nom@exemple.com"
-                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
-                    errors.email ? "border-red-500" : "border-slate-200 focus:border-brand-green"
-                  }`}
-                />
-              </div>
-              {errors.email && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.email.message}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Téléphone</label>
-              <div className="relative group">
-                <Phone size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
-                <input
-                  {...register("phone")}
-                  placeholder="77 123 45 67"
-                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
-                    errors.phone ? "border-red-500" : "border-slate-200 focus:border-brand-green"
-                  }`}
-                />
-              </div>
-              {errors.phone && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.phone.message}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Mot de Passe</label>
-              <div className="relative group">
-                <Lock size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-green transition-colors" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  placeholder="••••••••"
-                  className={`w-full pl-14 pr-12 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm ${
-                    errors.password ? "border-red-500" : "border-slate-200 focus:border-brand-green"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              {errors.password && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.password.message}</p>}
-            </div>
-
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Adresse de livraison</label>
-              <div className="relative group">
-                <MapPin size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-brand-green transition-colors" />
-                <textarea
-                  {...register("address")}
-                  rows={2}
-                  placeholder="Ex: Sacré-Cœur, Villa 123, Dakar"
-                  className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-brand-green/5 transition-all font-bold text-slate-900 text-sm resize-none ${
-                    errors.address ? "border-red-500" : "border-slate-200 focus:border-brand-green"
-                  }`}
-                />
-              </div>
-              {errors.address && <p className="text-[8px] text-red-500 font-bold ml-4 uppercase tracking-tighter">{errors.address.message}</p>}
-            </div>
-
-            <div className="md:col-span-2 p-4 bg-emerald-50/50 rounded-[24px] border border-emerald-100/50 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
-                    <Store size={20} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Partenariat</p>
-                    <h3 className="text-sm font-black text-slate-900 tracking-tight">Devenir Vendeur</h3>
-                  </div>
+            {/* Actions */}
+            <div className="pt-6 space-y-4">
+              {step === 2 && !isSeller && (
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[20px] border border-slate-100">
+                  <input type="checkbox" id="terms" required className="mt-1 w-4 h-4 accent-brand-green rounded" />
+                  <label htmlFor="terms" className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                    J&apos;accepte les <Link href="#" className="text-brand-green font-black">Conditions</Link> et la <Link href="#" className="text-brand-green font-black">Politique</Link>.
+                  </label>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    {...register("isSeller")}
-                    className="sr-only peer" 
-                  />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
-              </div>
+              )}
 
-              <AnimatePresence>
-                {isSeller && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="space-y-4 pt-4 border-t border-emerald-100/50 overflow-hidden"
+              {step === 3 && (
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[20px] border border-slate-100">
+                  <input type="checkbox" id="terms-seller" required className="mt-1 w-4 h-4 accent-emerald-500 rounded" />
+                  <label htmlFor="terms-seller" className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                    J&apos;accepte les <Link href="#" className="text-emerald-500 font-black">Conditions Vendeur</Link>.
+                  </label>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                {step > 1 && (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="w-20 h-14 bg-white border border-slate-100 rounded-[24px] flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all shadow-sm"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la Boutique</label>
-                        <div className="relative group">
-                          <Store size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
-                          <input
-                            {...register("shopName")}
-                            placeholder="Nom de votre boutique"
-                            className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm ${
-                              errors.shopName ? "border-red-500" : "border-slate-200 focus:border-emerald-500"
-                            }`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Spécialité</label>
-                        <div className="relative group">
-                          <Briefcase size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
-                          <input
-                            {...register("specialty")}
-                            placeholder="Cordonnerie, Bijouterie..."
-                            className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm ${
-                              errors.specialty ? "border-red-500" : "border-slate-200 focus:border-emerald-500"
-                            }`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="md:col-span-2 space-y-1">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Photo de la Boutique</label>
-                        <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden group/img relative">
-                            {watch("shopImage") ? (
-                              <Image src={watch("shopImage")!} alt="Shop" fill className="object-cover" />
-                            ) : (
-                              <Camera size={20} className="text-slate-300" />
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                try {
-                                  toast.info("Importation...");
-                                  const res = await api.upload<{ url: string }>("/upload", file);
-                                  // Update the form field directly
-                                  const shopImageField = register("shopImage");
-                                  shopImageField.onChange({ target: { value: res.url, name: "shopImage" } });
-                                  toast.success("Image importée !");
-                                } catch (error) {
-                                  toast.error("Échec de l'importation");
-                                }
-                              }}
-                              className="hidden"
-                              id="shop-image-upload"
-                            />
-                            <label
-                              htmlFor="shop-image-upload"
-                              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 cursor-pointer transition-all inline-block"
-                            >
-                              Choisir une image
-                            </label>
-                            <input type="hidden" {...register("shopImage")} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="md:col-span-2 space-y-1">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Localisation de la Boutique</label>
-                        <div className="relative group">
-                          <MapPin size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
-                          <input
-                            {...register("shopLocation")}
-                            placeholder="Ex: Dakar Plateau, Rue X"
-                            className="w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border border-slate-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm focus:border-emerald-500"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="md:col-span-2 space-y-1">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-4">Présentation (Bio)</label>
-                        <div className="relative group">
-                          <FileText size={16} className="absolute left-6 top-4 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
-                          <textarea
-                            {...register("bio")}
-                            rows={3}
-                            placeholder="Parlez-nous de votre savoir-faire..."
-                            className={`w-full pl-14 pr-8 py-2.5 rounded-[20px] bg-white border focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold text-slate-900 text-sm resize-none ${
-                              errors.bio ? "border-red-500" : "border-slate-200 focus:border-emerald-500"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+                    <ArrowLeft size={18} />
+                  </button>
                 )}
-              </AnimatePresence>
+                
+                {((step < 2) || (step === 2 && isSeller)) ? (
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className="flex-1 py-4 bg-brand-green text-white rounded-[24px] font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-brand-green/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    Suivant <ArrowRight size={16} />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`flex-1 py-4 font-black text-[10px] uppercase tracking-[0.2em] rounded-[24px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 ${
+                      isSeller 
+                        ? "bg-emerald-500 shadow-emerald-500/30 hover:shadow-emerald-500/40" 
+                        : "bg-brand-green shadow-brand-green/30 hover:shadow-brand-green/40"
+                    } text-white`}
+                  >
+                    {loading ? "Création..." : isSeller ? "Ouvrir ma boutique" : "Créer mon compte"}
+                    {!loading && <Sparkles size={14} />}
+                    {loading && <Loader2 size={14} className="animate-spin" />}
+                  </button>
+                )}
+              </div>
             </div>
-
-            <div className="md:col-span-2 flex items-start gap-3 p-3 bg-slate-100 rounded-[18px]">
-              <input type="checkbox" id="terms" required className="mt-1 w-4 h-4 accent-brand-green rounded" />
-              <label htmlFor="terms" className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
-                J&apos;accepte les <Link href="#" className="text-brand-green hover:underline">Conditions Générales</Link> et la <Link href="#" className="text-brand-green hover:underline">Politique de Confidentialité</Link>.
-              </label>
-            </div>
-
-            <button
-                type="submit"
-                disabled={loading}
-                className={`md:col-span-2 w-full py-4 font-black text-[10px] uppercase tracking-[0.2em] rounded-[24px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 ${
-                  isSeller 
-                    ? "bg-emerald-500 shadow-emerald-500/30 hover:shadow-emerald-500/40" 
-                    : "bg-brand-green shadow-brand-green/30 hover:shadow-brand-green/40"
-                } text-white`}
-              >
-                {loading ? "Création en cours..." : isSeller ? "Ouvrir ma boutique" : "Créer mon compte"}
-                {loading && <Sparkles size={14} className="animate-spin" />}
-              </button>
           </form>
 
-          <div className="mt-4 text-center">
-            <p className="text-xs font-medium text-slate-500">
-              Déjà membre ?{" "}
-              <Link
-                href="/login"
-                className="text-brand-green font-black hover:underline"
-              >
-                Se connecter
-              </Link>
-            </p>
-          </div>
+          {step === 1 && (
+            <div className="mt-10 text-center">
+              <p className="text-xs font-medium text-slate-500">
+                Déjà membre ?{" "}
+                <Link
+                  href="/login"
+                  className="text-brand-green font-black hover:underline"
+                >
+                  Se connecter
+                </Link>
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

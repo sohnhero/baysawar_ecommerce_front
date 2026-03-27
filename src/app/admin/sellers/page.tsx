@@ -17,7 +17,11 @@ import {
   Calendar,
   AlertCircle,
   Loader2,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
@@ -47,6 +51,18 @@ export default function AdminSellersPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const toggleRow = (id: string) => {
+    const next = new Set(expandedRows);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setExpandedRows(next);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,6 +101,14 @@ export default function AdminSellersPage() {
     const matchesFilter = filter === "all" || s.status === filter;
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredSellers.length / itemsPerPage);
+  const pagedSellers = filteredSellers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filter]);
 
   return (
     <AdminLayout>
@@ -149,60 +173,148 @@ export default function AdminSellersPage() {
                </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse border-spacing-0">
-                <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-6 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Boutique</th>
-                    <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Spécialité</th>
-                    <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Utilisateur</th>
-                    <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Statut</th>
-                    <th className="px-6 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {filteredSellers.map((seller) => {
-                    const status = statusConfig[seller.status] || { label: seller.status, color: "bg-slate-50" };
-                    return (
-                      <tr key={seller.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-[10px] relative">
-                               {seller.name[0]}
-                               <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${seller.status === 'approved' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                            </div>
-                            <span className="font-heading font-black text-slate-900 text-xs tracking-tight uppercase">{seller.name}</span>
+            <>
+              {/* Mobile Cards */}
+              <div className="md:hidden divide-y divide-slate-50">
+                {pagedSellers.map((seller) => {
+                  const status = statusConfig[seller.status] || { label: seller.status, color: "bg-slate-50" };
+                  const isExpanded = expandedRows.has(seller.id);
+                  return (
+                    <div key={seller.id} className="p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-xs relative">
+                            {seller.name[0]}
+                            <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${seller.status === 'approved' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                           </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <span className="text-xs text-slate-500 font-bold">{seller.specialty}</span>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="flex flex-col">
-                            <span className="text-[11px] font-black text-slate-900">{seller.user?.name || "N/A"}</span>
-                            <span className="text-[9px] text-slate-400 font-bold">{seller.user?.email || "N/A"}</span>
+                          <div>
+                            <p className="font-heading font-black text-slate-900 text-xs tracking-tight uppercase">{seller.name}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{seller.specialty}</p>
                           </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tight border ${status.color}`}>
-                            {status.icon && React.cloneElement(status.icon, { size: 10 })}
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button 
-                            onClick={() => setSelectedSeller(seller)}
-                            className="p-2.5 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                        </div>
+                        <button 
+                          onClick={() => toggleRow(seller.id)}
+                          className={`p-2 rounded-xl transition-all ${isExpanded ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20" : "bg-slate-50 text-slate-400"}`}
+                        >
+                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="pt-4 border-t border-slate-50 space-y-4"
                           >
-                            <Eye size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                               <div>
+                                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Utilisateur</p>
+                                 <p className="text-[10px] text-slate-900 font-black truncate">{seller.user?.name}</p>
+                               </div>
+                               <div>
+                                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Statut</p>
+                                 <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tight border ${status.color}`}>
+                                    {status.label}
+                                 </span>
+                               </div>
+                            </div>
+                            <button 
+                              onClick={() => setSelectedSeller(seller)}
+                              className="w-full py-3 bg-slate-50 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-100 flex items-center justify-center gap-2"
+                            >
+                              <Eye size={14} /> Voir Dossier
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse border-spacing-0">
+                  <thead>
+                    <tr className="bg-slate-50/50 border-b border-slate-100">
+                      <th className="px-6 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Boutique</th>
+                      <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Spécialité</th>
+                      <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Utilisateur</th>
+                      <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Statut</th>
+                      <th className="px-6 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {pagedSellers.map((seller) => {
+                      const status = statusConfig[seller.status] || { label: seller.status, color: "bg-slate-50" };
+                      return (
+                        <tr key={seller.id} className="group hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-[10px] relative">
+                                {seller.name[0]}
+                                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${seller.status === 'approved' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                              </div>
+                              <span className="font-heading font-black text-slate-900 text-xs tracking-tight uppercase">{seller.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className="text-xs text-slate-500 font-bold">{seller.specialty}</span>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-[11px] font-black text-slate-900">{seller.user?.name || "N/A"}</span>
+                              <span className="text-[9px] text-slate-400 font-bold">{seller.user?.email || "N/A"}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tight border ${status.color}`}>
+                              {status.icon && React.cloneElement(status.icon, { size: 10 })}
+                              {status.label}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button 
+                              onClick={() => setSelectedSeller(seller)}
+                              className="p-2.5 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                            >
+                              <Eye size={16} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4">
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                    Page <span className="text-slate-900 font-black">{currentPage}</span> sur <span className="text-slate-900 font-black">{totalPages}</span>
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => prev - 1)}
+                      className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                    >
+                      <ArrowLeft size={16} />
+                    </button>
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(prev => prev + 1)}
+                      className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                    >
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

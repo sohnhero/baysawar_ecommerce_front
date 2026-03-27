@@ -16,6 +16,7 @@ import {
   CreditCard,
   User,
   ArrowRight,
+  ArrowLeft,
   ChevronDown,
   ChevronUp,
   Loader2,
@@ -65,6 +66,10 @@ export default function SellerOrdersPage() {
   const [filter, setFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const toggleRow = (id: string) => {
     const next = new Set(expandedRows);
@@ -123,6 +128,14 @@ export default function SellerOrdersPage() {
     const matchesFilter = filter === "all" || order.status === filter;
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const pagedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filter]);
 
   return (
     <div className="space-y-6">
@@ -186,58 +199,132 @@ export default function SellerOrdersPage() {
              </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-6 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">ID Commande</th>
-                  <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Client</th>
-                  <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
-                  <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Statut</th>
-                  <th className="px-6 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {filteredOrders.map((order) => {
-                  const status = statusConfig[order.status] || { label: order.status, color: "bg-slate-50" };
-                  return (
-                    <tr key={order.dbId} className="group hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="text-[10px] font-black text-indigo-600 uppercase bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">#{order.id}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-black text-[10px]">
-                            {order.customer[0]}
+          <>
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y divide-slate-50">
+              {pagedOrders.map((order) => {
+                const status = statusConfig[order.status] || { label: order.status, color: "bg-slate-50" };
+                const isExpanded = expandedRows.has(order.dbId);
+                return (
+                  <div key={order.dbId} className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-xs">
+                          {order.customer[0]}
+                        </div>
+                        <div>
+                          <p className="font-black text-slate-900 text-xs">{order.customer}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">#{order.id}</p>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tight border ${status.color}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
+                        <p className="text-[10px] text-slate-600 font-bold">{order.date}</p>
+                      </div>
+                      <div>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 text-right">Montant</p>
+                        <p className="text-xs text-indigo-600 font-black text-right">{order.amount.toLocaleString()} F</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                       <button 
+                        onClick={() => setSelectedOrder(order)}
+                        className="flex-1 py-3 bg-slate-50 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-100 flex items-center justify-center gap-2"
+                      >
+                        <Eye size={14} /> Voir Détails
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100">
+                    <th className="px-6 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">ID Commande</th>
+                    <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Client</th>
+                    <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
+                    <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Statut</th>
+                    <th className="px-6 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {pagedOrders.map((order) => {
+                    const status = statusConfig[order.status] || { label: order.status, color: "bg-slate-50" };
+                    return (
+                      <tr key={order.dbId} className="group hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="text-[10px] font-black text-indigo-600 uppercase bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">#{order.id}</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-black text-[10px]">
+                              {order.customer[0]}
+                            </div>
+                            <span className="font-black text-slate-900 text-xs">{order.customer}</span>
                           </div>
-                          <span className="font-black text-slate-900 text-xs">{order.customer}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-xs text-slate-500 font-bold">{order.date}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tight border ${status.color}`}>
-                          {status.icon && React.cloneElement(status.icon, { size: 10 })}
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button 
-                            onClick={() => setSelectedOrder(order)}
-                            className="p-2.5 text-slate-400 hover:text-indigo-600 bg-slate-50 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="text-xs text-slate-500 font-bold">{order.date}</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tight border ${status.color}`}>
+                            {status.icon && React.cloneElement(status.icon, { size: 10 })}
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => setSelectedOrder(order)}
+                              className="p-2.5 text-slate-400 hover:text-indigo-600 bg-slate-50 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                            >
+                              <Eye size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                  Page <span className="text-slate-900 font-black">{currentPage}</span> sur <span className="text-slate-900 font-black">{totalPages}</span>
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => prev - 1)}
+                    className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                  >
+                    <ArrowLeft size={16} />
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                    className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                  >
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -16,7 +16,9 @@ import {
   Mail,
   X,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ArrowLeft,
+  ArrowRight
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
@@ -30,6 +32,10 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (id: string) => {
@@ -90,6 +96,14 @@ export default function AdminUsersPage() {
     u.name.toLowerCase().includes(search.toLowerCase()) || 
     u.email.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const pagedUsers = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   return (
     <AdminLayout>
@@ -198,7 +212,7 @@ export default function AdminUsersPage() {
 
         {/* Mobile-Friendly Cards (Visible on mobile only) */}
         <div className="md:hidden space-y-4 pb-12">
-          {filtered.map((user: any, i: number) => {
+          {pagedUsers.map((user: any, i: number) => {
             const isExpanded = expandedRows.has(user.id);
             return (
               <motion.div
@@ -379,6 +393,31 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4">
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                Page <span className="text-slate-900 font-black">{currentPage}</span> sur <span className="text-slate-900 font-black">{totalPages}</span>
+              </p>
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:hover:text-slate-400 transition-all"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
