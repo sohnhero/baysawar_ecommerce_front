@@ -225,17 +225,19 @@ export default function AccountPage() {
               <User size={14} /> Profil
             </span>
           </button>
-          <button
-            onClick={() => setTab("orders")}
-            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab === "orders"
-                ? "bg-brand-green text-white"
-                : "text-muted hover:text-foreground"
-              }`}
-          >
-            <span className="flex items-center gap-2">
-              <Package size={14} /> Commandes
-            </span>
-          </button>
+          {user?.role !== 'admin' && (
+            <button
+              onClick={() => setTab("orders")}
+              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab === "orders"
+                  ? "bg-brand-green text-white"
+                  : "text-muted hover:text-foreground"
+                }`}
+            >
+              <span className="flex items-center gap-2">
+                <Package size={14} /> Commandes
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Profile Tab */}
@@ -295,78 +297,80 @@ export default function AccountPage() {
               </div>
 
               {/* Seller Account Section */}
-              <div className="md:col-span-2 p-6 bg-emerald-50/50 rounded-[32px] border border-emerald-100/50 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-[100px] -z-0" />
-                
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-emerald-100 flex items-center justify-center text-emerald-600 transition-transform group-hover:scale-110">
-                      <Store size={28} />
-                    </div>
-                    <div>
-                      <h3 className="font-heading font-black text-lg text-slate-900 tracking-tight">Espace Vendeur</h3>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/60 mt-0.5">Programme Partenaires Baysawarr</p>
-                    </div>
-                  </div>
-
-                  {!artisan ? (
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      <p className="text-xs font-bold text-slate-500 max-w-[200px]">Partagez votre savoir-faire et commencez à vendre vos créations.</p>
-                      <button 
-                        onClick={() => setShowSellerModal(true)}
-                        className="px-6 py-3 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2"
-                      >
-                        Ouvrir ma boutique <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  ) : artisan.status === "pending" ? (
-                    <div className="flex items-center gap-3 px-6 py-3 bg-amber-50 border border-amber-100 rounded-2xl">
-                      <Clock size={18} className="text-amber-500 animate-pulse" />
+              {user?.role !== 'admin' && (
+                <div className="md:col-span-2 p-6 bg-emerald-50/50 rounded-[32px] border border-emerald-100/50 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-[100px] -z-0" />
+                  
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-emerald-100 flex items-center justify-center text-emerald-600 transition-transform group-hover:scale-110">
+                        <Store size={28} />
+                      </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Demande en cours</p>
-                        <p className="text-[9px] font-bold text-amber-500/80 uppercase">Nous étudions votre profil</p>
+                        <h3 className="font-heading font-black text-lg text-slate-900 tracking-tight">Espace Vendeur</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/60 mt-0.5">Programme Partenaires Baysawarr</p>
                       </div>
                     </div>
-                  ) : artisan.status === "approved" ? (
-                    <div className="flex flex-col sm:flex-row items-center gap-3">
-                      <Link 
-                        href="/dashboard/seller"
-                        className="px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-500 transition-all shadow-xl shadow-slate-900/10 active:scale-95 flex items-center gap-3"
-                      >
-                        <LayoutDashboard size={16} /> Gérer ma boutique
-                      </Link>
-                      <button 
-                        onClick={() => {
-                          sellerForm.reset({
-                            shopName: artisan.name,
-                            specialty: artisan.specialty,
-                            bio: artisan.bio,
-                            location: artisan.location,
-                            image: artisan.image
-                          });
-                          setShowSellerModal(true);
-                        }}
-                        className="px-6 py-3 border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
-                      >
-                        <Edit2 size={14} /> Éditer infos
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      <div className="flex items-center gap-3 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl">
-                        <AlertCircle size={18} className="text-rose-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-rose-600">Inscription Refusée</span>
+
+                    {!artisan ? (
+                      <div className="flex flex-col md:flex-row md:items-center gap-4">
+                        <p className="text-xs font-bold text-slate-500 max-w-[200px]">Partagez votre savoir-faire et commencez à vendre vos créations.</p>
+                        <button 
+                          onClick={() => setShowSellerModal(true)}
+                          className="px-6 py-3 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2"
+                        >
+                          Ouvrir ma boutique <ChevronRight size={14} />
+                        </button>
                       </div>
-                      <button 
-                        onClick={() => setShowSellerModal(true)}
-                        className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline"
-                      >
-                        Réessayer l&apos;inscription
-                      </button>
-                    </div>
-                  )}
+                    ) : artisan.status === "pending" ? (
+                      <div className="flex items-center gap-3 px-6 py-3 bg-amber-50 border border-amber-100 rounded-2xl">
+                        <Clock size={18} className="text-amber-500 animate-pulse" />
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Demande en cours</p>
+                          <p className="text-[9px] font-bold text-amber-500/80 uppercase">Nous étudions votre profil</p>
+                        </div>
+                      </div>
+                    ) : artisan.status === "approved" ? (
+                      <div className="flex flex-col sm:flex-row items-center gap-3">
+                        <Link 
+                          href="/dashboard/seller"
+                          className="px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-500 transition-all shadow-xl shadow-slate-900/10 active:scale-95 flex items-center gap-3"
+                        >
+                          <LayoutDashboard size={16} /> Gérer ma boutique
+                        </Link>
+                        <button 
+                          onClick={() => {
+                            sellerForm.reset({
+                              shopName: artisan.name,
+                              specialty: artisan.specialty,
+                              bio: artisan.bio,
+                              location: artisan.location,
+                              image: artisan.image
+                            });
+                            setShowSellerModal(true);
+                          }}
+                          className="px-6 py-3 border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
+                        >
+                          <Edit2 size={14} /> Éditer infos
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col md:flex-row md:items-center gap-4">
+                        <div className="flex items-center gap-3 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl">
+                          <AlertCircle size={18} className="text-rose-500" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-rose-600">Inscription Refusée</span>
+                        </div>
+                        <button 
+                          onClick={() => setShowSellerModal(true)}
+                          className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline"
+                        >
+                          Réessayer l&apos;inscription
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         )}

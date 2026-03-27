@@ -202,17 +202,19 @@ export default function Header() {
                 <Search size={20} />
               </button>
 
-              <button
-                onClick={handleWishlistClick}
-                className="flex p-2 rounded-xl hover:bg-surface transition-colors relative"
-              >
-                <Heart size={20} className="sm:w-[22px] sm:h-[22px]" />
-                {mounted && wishlistItems.length > 0 && (
-                  <span className="absolute top-0 right-0 sm:-top-0.5 sm:-right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                    {wishlistItems.length}
-                  </span>
-                )}
-              </button>
+              {user?.role !== 'admin' && (
+                <button
+                  onClick={handleWishlistClick}
+                  className="flex p-2 rounded-xl hover:bg-surface transition-colors relative"
+                >
+                  <Heart size={20} className="sm:w-[22px] sm:h-[22px]" />
+                  {mounted && wishlistItems.length > 0 && (
+                    <span className="absolute top-0 right-0 sm:-top-0.5 sm:-right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* Account / Auth */}
               <div
@@ -289,29 +291,31 @@ export default function Header() {
               </div>
 
               {/* Cart */}
-              <Link
-                href="/cart"
-                className="flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-brand-green/5 hover:bg-brand-green/10 border border-brand-green/10 transition-colors relative group"
-              >
-                <div className="relative">
-                  <ShoppingCart size={20} className="text-brand-green" />
-                  {mounted && totalItems > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-2 -right-2 w-5 h-5 bg-brand-green text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm"
-                    >
-                      {totalItems}
-                    </motion.span>
-                  )}
-                </div>
-                <div className="hidden xl:block text-left">
-                  <p className="text-[10px] text-muted leading-none">Mon Panier</p>
-                  <p className="text-xs font-bold text-brand-green leading-tight">
-                    {mounted ? totalPrice.toLocaleString() : 0} FCFA
-                  </p>
-                </div>
-              </Link>
+              {user?.role !== 'admin' && (
+                <Link
+                  href="/cart"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-brand-green/5 hover:bg-brand-green/10 border border-brand-green/10 transition-colors relative group"
+                >
+                  <div className="relative">
+                    <ShoppingCart size={20} className="text-brand-green" />
+                    {mounted && totalItems > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-brand-green text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm"
+                      >
+                        {totalItems}
+                      </motion.span>
+                    )}
+                  </div>
+                  <div className="hidden xl:block text-left">
+                    <p className="text-[10px] text-muted leading-none">Mon Panier</p>
+                    <p className="text-xs font-bold text-brand-green leading-tight">
+                      {mounted ? totalPrice.toLocaleString() : 0} FCFA
+                    </p>
+                  </div>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -540,11 +544,13 @@ export default function Header() {
                   <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">🛍️</span>
                   Boutique
                 </Link>
-                <Link href="/wishlist" onClick={(e) => { handleWishlistClick(e as any); setMobileOpen(false); }}
-                  className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color">
-                  <span className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center text-base">❤️</span>
-                  Ma Liste de Souhaits
-                </Link>
+                {user?.role !== 'admin' && (
+                  <Link href="/wishlist" onClick={(e) => { handleWishlistClick(e as any); setMobileOpen(false); }}
+                    className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color">
+                    <span className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center text-base">❤️</span>
+                    Ma Liste de Souhaits
+                  </Link>
+                )}
 
 
                 <div className="px-5 py-4 text-[10px] font-black text-muted uppercase tracking-[0.2em] mt-2">
