@@ -114,6 +114,7 @@ export default function HomePage() {
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [dbArtisans, setDbArtisans] = useState<any[]>([]);
   const [flashSales, setFlashSales] = useState<any[]>([]);
+  const [dbHighlights, setDbHighlights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
   const { user } = useAuthStore();
@@ -150,23 +151,55 @@ export default function HomePage() {
       });
     }
 
-    // Add Top Featured Product Slide
-    const topFeatured = products.find(p => p.featured && !activeCampaign?.items?.some((i: any) => i.productId === p.id));
-    if (topFeatured) {
+    // Add Most Ordered Slide
+    if (dbHighlights?.mostOrdered) {
+      const topProd = dbHighlights.mostOrdered;
       baseSlides.push({
-        tag: topFeatured.badge || "Coup de Coeur",
-        title: topFeatured.name,
-        titleAccent: `${topFeatured.price.toLocaleString()} FCFA`,
-        desc: topFeatured.description,
+        tag: topProd.badge || "Le Plus Commandé",
+        title: topProd.name,
+        titleAccent: `${parseFloat(topProd.price).toLocaleString()} FCFA`,
+        desc: topProd.description,
         cta: "Commander l'Article",
-        ctaLink: `/shop/${topFeatured.id}`,
-        image: topFeatured.image,
-        color: "from-[#2a1810]/95",
+        ctaLink: `/shop/${topProd.id}`,
+        image: topProd.image,
+        color: "from-[#2e7d32]/95",
       });
     }
 
+    // Add Most Liked Slide
+    if (dbHighlights?.mostLiked && dbHighlights.mostLiked.id !== dbHighlights.mostOrdered?.id) {
+      const likedProd = dbHighlights.mostLiked;
+      baseSlides.push({
+        tag: likedProd.badge || "Choix de la Communauté",
+        title: likedProd.name,
+        titleAccent: `${parseFloat(likedProd.price).toLocaleString()} FCFA`,
+        desc: likedProd.description,
+        cta: "Découvrir Mnt",
+        ctaLink: `/shop/${likedProd.id}`,
+        image: likedProd.image,
+        color: "from-[#b71c1c]/95",
+      });
+    }
+
+    // Fallback if no highlights yet
+    if (!dbHighlights?.mostOrdered && !dbHighlights?.mostLiked) {
+      const topFeatured = products.find(p => p.featured && !activeCampaign?.items?.some((i: any) => i.productId === p.id));
+      if (topFeatured) {
+        baseSlides.push({
+          tag: topFeatured.badge || "Coup de Coeur",
+          title: topFeatured.name,
+          titleAccent: `${topFeatured.price.toLocaleString()} FCFA`,
+          desc: topFeatured.description,
+          cta: "Commander l'Article",
+          ctaLink: `/shop/${topFeatured.id}`,
+          image: topFeatured.image,
+          color: "from-[#2a1810]/95",
+        });
+      }
+    }
+
     return baseSlides;
-  }, [products, activeCampaign]);
+  }, [products, activeCampaign, dbHighlights]);
 
   // Auto-slide
   useEffect(() => {
@@ -181,11 +214,12 @@ export default function HomePage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [p, c, a, fetchedCampaign] = await Promise.all([
+        const [p, c, a, fetchedCampaign, fetchedHighlights] = await Promise.all([
           api.get<any[]>("/products"),
           api.get<any[]>("/categories"),
           api.get<any[]>("/artisans"),
           api.get<any>("/flash-sales/active"),
+          api.get<any>("/products/highlights"),
         ]);
 
         // Apply flash sale prices to products if they belong to the active campaign
@@ -207,6 +241,7 @@ export default function HomePage() {
         setDbCategories(c || []); // Ensure c is an array
         setDbArtisans(a || []); // Ensure a is an array
         setFlashSales(fetchedCampaign || null); // Store the campaign object in flashSales state, ensure it's not undefined
+        setDbHighlights(fetchedHighlights || null);
       } catch (error) {
         console.error("Failed to fetch homepage data:", error);
       } finally {
