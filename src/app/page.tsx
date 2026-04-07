@@ -129,15 +129,15 @@ export default function HomePage() {
     // Add Active Campaign Slide
     if (activeCampaign) {
       const firstProductImage = activeCampaign.items?.[0]?.product?.image;
-      
+
       baseSlides.push({
-        tag: "🔥 EN DIRECT",
+        tag: "EN DIRECT",
         title: activeCampaign.title,
         titleAccent: "Offres Limitées",
-        desc: activeCampaign.description || "Profitez de réductions exclusives sur les pépites de notre terroir.",
+        desc: activeCampaign.description || "Profitez de réductions exclusives sur les pépites de notre boutique.",
         cta: "Voir les Offres",
         ctaLink: "/#flash-deals",
-        image: activeCampaign.image || firstProductImage || "https://images.pexels.com/photos/30754235/pexels-photo-30754235.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        image: activeCampaign.image || firstProductImage,
         color: "from-[#1a1a2e]/95",
       });
     }
@@ -165,7 +165,7 @@ export default function HomePage() {
         title: likedProd.name,
         titleAccent: `${parseFloat(likedProd.price).toLocaleString()} FCFA`,
         desc: likedProd.description,
-        cta: "Découvrir Mnt",
+        cta: "Découvrir",
         ctaLink: `/shop/${likedProd.id}`,
         image: likedProd.image,
         color: "from-[#b71c1c]/95",
@@ -197,7 +197,7 @@ export default function HomePage() {
         desc: "Découvrez notre sélection exclusive de produits locaux et artisanaux.",
         cta: "Découvrir",
         ctaLink: "/shop",
-        image: "https://images.pexels.com/photos/29663367/pexels-photo-29663367.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        image: "https://res.cloudinary.com/drxouwbms/image/upload/v1775574363/8c6463a1f3a8d2797bea0b449a685baf_hpk0nq.jpg",
         color: "from-brand-blue/95",
       });
     }
@@ -308,7 +308,7 @@ export default function HomePage() {
                     key={currentSlide}
                     className="max-w-xl"
                   >
-                    <motion.span 
+                    <motion.span
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
@@ -316,8 +316,8 @@ export default function HomePage() {
                     >
                       {heroSlides[currentSlide]?.tag}
                     </motion.span>
-                    
-                    <motion.h1 
+
+                    <motion.h1
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
@@ -330,7 +330,7 @@ export default function HomePage() {
                       </span>
                     </motion.h1>
 
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
@@ -380,7 +380,7 @@ export default function HomePage() {
 
               {/* Progress Line */}
               <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/10">
-                <motion.div 
+                <motion.div
                   key={currentSlide}
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
@@ -395,11 +395,10 @@ export default function HomePage() {
                   <button
                     key={i}
                     onClick={() => setCurrentSlide(i)}
-                    className={`h-2 rounded-full transition-all duration-500 ${
-                      i === currentSlide
-                        ? "w-10 bg-brand-green shadow-[0_0_15px_rgba(46,204,113,0.5)]"
-                        : "w-2 bg-white/20 hover:bg-white/40"
-                    }`}
+                    className={`h-2 rounded-full transition-all duration-500 ${i === currentSlide
+                      ? "w-10 bg-brand-green shadow-[0_0_15px_rgba(46,204,113,0.5)]"
+                      : "w-2 bg-white/20 hover:bg-white/40"
+                      }`}
                   />
                 ))}
               </div>
@@ -411,14 +410,14 @@ export default function HomePage() {
                 // Stabilize random selection for the duration of the component lifecycle
                 const featured = products.filter(p => p.featured);
                 const regular = products.filter(p => !p.featured);
-                
+
                 // Shuffle both pools
                 const shuffledFeatured = [...featured].sort(() => 0.5 - Math.random());
                 const shuffledRegular = [...regular].sort(() => 0.5 - Math.random());
-                
+
                 // Merge and take top 2
                 const sideProducts = [...shuffledFeatured, ...shuffledRegular].slice(0, 2);
-                
+
                 return sideProducts.map((p, idx) => (
                   <Link key={p.id} href={`/shop/${p.id}`} className="relative flex-1 rounded-2xl overflow-hidden group shadow-lg border border-white/5 bg-surface min-h-[160px]">
                     <Image
@@ -488,7 +487,7 @@ export default function HomePage() {
                   </div>
                   {activeCampaign?.active && (
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-green/10 text-brand-green rounded-lg text-[10px] font-black uppercase tracking-tight border border-brand-green/20">
-                        <Clock size={12} className="animate-pulse" /> Live Now
+                      <Clock size={12} className="animate-pulse" /> Live Now
                     </div>
                   )}
                 </div>
@@ -527,7 +526,7 @@ export default function HomePage() {
                         </span>
                       ) : (
                         <span className="absolute inset-0 bg-brand-blue/60 flex items-center justify-center text-[10px] text-white font-black uppercase tracking-widest text-center px-2">
-                           Bientôt dispo
+                          Bientôt dispo
                         </span>
                       )}
                     </div>
@@ -548,7 +547,7 @@ export default function HomePage() {
                                 i < Math.round(p.rating || 5)
                                   ? "fill-brand-gold text-brand-gold"
                                   : "text-border-color"
-                                }
+                              }
                             />
                           ))}
                           <span className="text-[10px] text-muted ml-0.5">({p.reviewCount || 0})</span>
