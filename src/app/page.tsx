@@ -282,7 +282,7 @@ export default function HomePage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="font-heading font-black text-[22px] xs:text-2xl sm:text-4xl lg:text-6xl text-white leading-[1.15] mb-4 drop-shadow-xl"
+                      className="font-heading font-black text-[22px] xs:text-2xl sm:text-4xl lg:text-5xl text-white leading-[1.1] mb-3 drop-shadow-2xl line-clamp-2"
                     >
                       {heroSlides[currentSlide]?.title}
                       <br />
@@ -295,7 +295,7 @@ export default function HomePage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="text-white/80 text-xs sm:text-sm lg:text-lg mb-8 line-clamp-3 sm:line-clamp-none max-w-md font-medium leading-relaxed"
+                      className="text-white/80 text-xs sm:text-sm lg:text-lg mb-6 line-clamp-2 sm:line-clamp-3 max-w-md font-medium leading-relaxed"
                     >
                       {heroSlides[currentSlide]?.desc}
                     </motion.p>
@@ -366,14 +366,22 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Dynamic Side Promo Banners */}
+            {/* Dynamic Side Promo Banners - Randomized */}
             <div className="hidden lg:flex flex-col gap-4">
               {(() => {
+                // Stabilize random selection for the duration of the component lifecycle
                 const featured = products.filter(p => p.featured);
-                const sideProducts = [...featured, ...products.filter(p => !p.featured)].slice(0, 2);
+                const regular = products.filter(p => !p.featured);
+                
+                // Shuffle both pools
+                const shuffledFeatured = [...featured].sort(() => 0.5 - Math.random());
+                const shuffledRegular = [...regular].sort(() => 0.5 - Math.random());
+                
+                // Merge and take top 2
+                const sideProducts = [...shuffledFeatured, ...shuffledRegular].slice(0, 2);
                 
                 return sideProducts.map((p, idx) => (
-                  <Link key={p.id} href={`/shop/${p.id}`} className="relative flex-1 rounded-2xl overflow-hidden group shadow-lg border border-white/5 bg-surface">
+                  <Link key={p.id} href={`/shop/${p.id}`} className="relative flex-1 rounded-2xl overflow-hidden group shadow-lg border border-white/5 bg-surface min-h-[160px]">
                     <Image
                       src={p.image}
                       alt={p.name}
