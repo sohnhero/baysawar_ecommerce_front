@@ -41,8 +41,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await api.post<{ user: any; token: string }>("/auth/login", data);
-      login(result.user, result.token);
+      const result = await api.post<{ user: any }>("/auth/login", data);
+      login(result.user);
       toast.success(`Heureux de vous revoir, ${result.user.name.split(' ')[0]} !`);
       // Redirect based on role
       if (result.user.role === "admin") {

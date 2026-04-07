@@ -24,9 +24,8 @@ export interface User {
 
 interface AuthStore {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
-  login: (user: User, token: string) => void;
+  login: (user: User) => void;
   logout: () => void;
   refreshAuth: () => Promise<void>;
 }
@@ -35,42 +34,36 @@ export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
-      login: (user, token) => {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("baysawarr-token", token);
-        }
-        set({ user, token, isAuthenticated: true });
+      login: (user) => {
+        set({ user, isAuthenticated: true });
       },
       logout: () => {
-        // Clear local UI state first so the changes are immediate
+        // Clear local UI state first
         useCartStore.setState({ items: [] });
         useWishlistStore.setState({ items: [] });
         
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("baysawarr-token");
-        }
-        set({ user: null, token: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false });
       },
       refreshAuth: async () => {
         try {
           // Use a dynamic import for api to avoid circular dependencies if any
           const { api } = await import("@/lib/api");
-          const data = await api.get<{ user: User; token: string }>("/auth/me");
-          if (data.user && data.token) {
-            if (typeof window !== "undefined") {
-              localStorage.setItem("baysawarr-token", data.token);
-            }
-            set({ user: data.user, token: data.token, isAuthenticated: true });
+          const data = await api.get<{ user: User }>("/auth/me");
+          if (data.user) {
+            set({ user: data.user, isAuthenticated: true });
           }
         } catch (error) {
-          console.error("Auth refresh failed:", error);
+          // Auth refresh failed - silently handle to avoid leaking details
         }
       },
     }),
     {
       name: "baysawarr-auth",
+      partialize: (state) => ({ 
+        user: state.user ? { id: state.user.id, role: state.user.role } : null, 
+        isAuthenticated: state.isAuthenticated 
+      }),
     }
   )
 );

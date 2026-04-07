@@ -4,17 +4,15 @@ export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
-
   const headers = {
     ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   } as any;
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: "include", // Required for sending/receiving cookies
   });
 
   if (!response.ok) {
@@ -38,6 +36,12 @@ export async function apiFetch<T>(
     } catch {
       errorMessage = response.statusText || errorMessage;
     }
+    
+    // In production, we avoid logging the full error to prevent information leakage
+    if (process.env.NODE_ENV !== "production") {
+      console.error(`API Error [${response.status}] ${endpoint}:`, errorMessage);
+    }
+    
     throw new Error(errorMessage);
   }
 
@@ -53,6 +57,14 @@ export async function apiFetch<T>(
   return JSON.parse(text) as T;
 }
 
+export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB limit
+export const validateImageSize = (file: File) => {
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error("L'image est trop volumineuse (max 5Mo)");
+  }
+  return true;
+};
+
 export const api = {
   get: <T>(endpoint: string, options?: RequestInit) =>
     apiFetch<T>(endpoint, { ...options, method: "GET" }),
@@ -63,6 +75,10 @@ export const api = {
       body: body instanceof FormData ? body : JSON.stringify(body),
     }),
   upload: <T>(endpoint: string, file: File, options?: RequestInit) => {
+    // Basic validation safety
+    if (file.size > MAX_IMAGE_SIZE) {
+      return Promise.reject(new Error("L'image est trop volumineuse (max 5Mo)"));
+    }
     const formData = new FormData();
     formData.append("file", file);
     return apiFetch<T>(endpoint, {

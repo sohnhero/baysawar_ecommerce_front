@@ -8,7 +8,7 @@ import { Mail, Lock, User, Phone, MapPin, ArrowLeft, ArrowRight, Sparkles, Check
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { AnimatePresence } from "framer-motion";
-import { api } from "@/lib/api";
+import { api, validateImageSize } from "@/lib/api";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -391,6 +391,7 @@ export default function RegisterPage() {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             try {
+                              validateImageSize(file);
                               toast.info("Importation...");
                               const res = await api.upload<{ url: string }>("/upload", file);
                               const shopImageField = register("shopImage");

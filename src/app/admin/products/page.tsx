@@ -27,7 +27,7 @@ import { products as initialProducts } from "@/data/products";
 import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { toast } from "react-toastify";
-import { api } from "@/lib/api";
+import { api, validateImageSize } from "@/lib/api";
 import { useEffect, useRef } from "react";
 import { generateProductsReport } from "@/lib/reports";
 
@@ -181,8 +181,14 @@ export default function AdminProductsPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
+      try {
+        validateImageSize(file);
+        setSelectedFile(file);
+        setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
+      } catch (error: any) {
+        toast.error(error.message);
+        e.target.value = ""; // clear input
+      }
     }
   };
 

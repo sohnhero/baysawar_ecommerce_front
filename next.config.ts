@@ -25,6 +25,7 @@ const nextConfig: any = {
       { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;
