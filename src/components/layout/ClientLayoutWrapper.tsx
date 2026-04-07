@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Footer from "./Footer";
+import { useAuthStore } from "@/store/auth-store";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,6 +15,11 @@ export default function ClientLayoutWrapper({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { refreshAuth } = useAuthStore();
+
+  useEffect(() => {
+    refreshAuth();
+  }, [refreshAuth]);
   
   // Define routes that should NOT have the global header and footer
   const isAuthPage = pathname === "/login" || pathname === "/register";

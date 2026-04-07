@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: "baysawarr-auth",
       partialize: (state) => ({ 
-        user: state.user ? { id: state.user.id, role: state.user.role } : null, 
+        user: state.user, 
         isAuthenticated: state.isAuthenticated 
       }),
     }
