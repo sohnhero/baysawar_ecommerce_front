@@ -137,7 +137,7 @@ export default function HomePage() {
         desc: activeCampaign.description || "Profitez de réductions exclusives sur les pépites de notre boutique.",
         cta: "Voir les Offres",
         ctaLink: "/#flash-deals",
-        image: activeCampaign.image || firstProductImage,
+        image: activeCampaign.image || firstProductImage || "https://res.cloudinary.com/drxouwbms/image/upload/v1775574363/8c6463a1f3a8d2797bea0b449a685baf_hpk0nq.jpg",
         color: "from-[#1a1a2e]/95",
       });
     }
