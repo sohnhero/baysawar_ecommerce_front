@@ -43,7 +43,7 @@ export default function LoginPage() {
     try {
       const result = await api.post<{ user: any }>("/auth/login", data);
       login(result.user);
-      toast.success(`Heureux de vous revoir, ${result.user.name.split(' ')[0]} !`);
+      toast.success(`Heureux de vous revoir, ${(result.user.name || "Client").split(' ')[0]} !`);
       // Redirect based on role
       if (result.user.role === "admin") {
         router.push("/admin");

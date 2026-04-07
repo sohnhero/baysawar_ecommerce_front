@@ -422,10 +422,10 @@ export default function AdminPage() {
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-[10px] shadow-sm transform group-hover:rotate-6 transition-transform ${
                         i % 2 === 0 ? "bg-slate-900 text-white" : "bg-brand-green text-white"
                       }`}>
-                        {order.customer.split(' ').map((n: string) => n[0]).join('')}
+                        {(order.customer || "C").split(' ').map((n: string) => n[0]).join('')}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-black text-slate-900 uppercase tracking-tight truncate max-w-[120px]">{order.customer}</p>
+                        <p className="text-xs font-black text-slate-900 uppercase tracking-tight truncate max-w-[120px]">{order.customer || "Client"}</p>
                         <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest truncate flex items-center gap-1">
                           #{order.id.slice(-8)} <span className="w-1 h-1 rounded-full bg-slate-200" /> {order.date}
                         </p>

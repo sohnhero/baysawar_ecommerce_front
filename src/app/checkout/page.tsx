@@ -521,7 +521,7 @@ export default function CheckoutPage() {
                     <span>{totalPrice().toLocaleString()} FCFA</span>
                   </div>
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-muted">Livraison {deliveryMethod ? `(${deliveryMethod.name.split(' ')[0]})` : "" }</span>
+                    <span className="text-muted">Livraison {deliveryMethod ? `(${(deliveryMethod.name || "").split(' ')[0]})` : "" }</span>
                     <span className={!deliveryMethod ? "text-brand-green font-bold animate-pulse" : ""}>
                       {deliveryMethod ? `${shipping.toLocaleString()} FCFA` : "À sélectionner"}
                     </span>

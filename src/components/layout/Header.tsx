@@ -229,7 +229,7 @@ export default function Header() {
                   <User size={20} />
                   <div className="hidden xl:block text-left">
                     <p className="text-[10px] text-muted leading-none">
-                      {isAuthenticated ? `Bonjour ${user?.name.split(' ')[0]} 👋` : "Se connecter"}
+                      {isAuthenticated ? `Bonjour ${(user?.name || "Client").split(' ')[0]} 👋` : "Se connecter"}
                     </p>
                     <p className="text-xs font-semibold leading-tight">Mon Compte</p>
                   </div>
@@ -590,7 +590,7 @@ export default function Header() {
                         </div>
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-muted leading-none mb-1">Mon Compte</p>
-                          <p className="text-sm font-black uppercase tracking-tight truncate max-w-[150px]">{user?.name.split(' ')[0]}</p>
+                          <p className="text-sm font-black uppercase tracking-tight truncate max-w-[150px]">{(user?.name || "Client").split(' ')[0]}</p>
                         </div>
                       </div>
                       <ChevronDown size={18} className="-rotate-90 text-muted" />
