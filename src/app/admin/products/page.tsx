@@ -61,7 +61,8 @@ export default function AdminProductsPage() {
     price: 0,
     stock: 10,
     description: "",
-    image: ""
+    image: "",
+    featured: false
   };
   const [formData, setFormData] = useState(defaultForm);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -145,7 +146,8 @@ export default function AdminProductsPage() {
       price: product.price,
       stock: product.stock,
       description: product.description,
-      image: product.image || defaultForm.image
+      image: product.image || defaultForm.image,
+      featured: product.featured || false
     });
     setShowModal(true);
   };
@@ -304,8 +306,9 @@ export default function AdminProductsPage() {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Produit</span>
-                      <span className="font-heading font-black text-slate-900 tracking-tight text-sm truncate max-w-[150px]">
+                      <span className="font-heading font-black text-slate-900 tracking-tight text-sm truncate max-w-[150px] flex items-center gap-2">
                         {product.name}
+                        {product.featured && <Star size={12} className="fill-brand-gold text-brand-gold shrink-0 mb-0.5" />}
                       </span>
                     </div>
                   </div>
@@ -423,8 +426,9 @@ export default function AdminProductsPage() {
                           />
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-heading font-black text-slate-900 tracking-tight text-sm truncate max-w-[200px]">
+                          <span className="font-heading font-black text-slate-900 tracking-tight text-sm truncate max-w-[200px] flex items-center gap-2">
                             {product.name}
+                            {product.featured && <Star size={12} className="fill-brand-gold text-brand-gold shrink-0 mb-0.5" />}
                           </span>
                           <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest truncate">ID: {product.id.substring(0,8)}</span>
                         </div>
@@ -656,6 +660,22 @@ export default function AdminProductsPage() {
                       onChange={e => setFormData({...formData, description: e.target.value})}
                       className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium focus:outline-none focus:border-brand-blue transition-all resize-none"
                     />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="flex items-center gap-3 p-4 rounded-2xl bg-brand-green/5 border border-brand-green/10 cursor-pointer hover:bg-brand-green/10 transition-all">
+                      <input 
+                        type="checkbox" 
+                        className="w-5 h-5 rounded-lg border-brand-green text-brand-green focus:ring-brand-green"
+                        checked={formData.featured}
+                        onChange={e => setFormData({...formData, featured: e.target.checked})}
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-green leading-none mb-1">Mettre en Avant</span>
+                        <span className="text-[9px] text-slate-500 font-bold">Le produit apparaîtra dans les bannières de la page d'accueil</span>
+                      </div>
+                      <Star size={16} className={`ml-auto transition-all ${formData.featured ? 'fill-brand-gold text-brand-gold scale-110' : 'text-slate-200'}`} />
+                    </label>
                   </div>
                 </div>
                 

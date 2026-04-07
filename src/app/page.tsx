@@ -368,29 +368,35 @@ export default function HomePage() {
 
             {/* Dynamic Side Promo Banners */}
             <div className="hidden lg:flex flex-col gap-4">
-              {products.filter(p => p.featured).slice(-2).map((p, idx) => (
-                <Link key={p.id} href={`/shop/${p.id}`} className="relative flex-1 rounded-2xl overflow-hidden group shadow-lg border border-white/5">
-                  <Image
-                    src={p.image}
-                    alt={p.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                    sizes="25vw"
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${idx === 0 ? 'from-black/90' : 'from-brand-blue/90'} to-transparent`} />
-                  <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <span className={`inline-block px-2.5 py-1 ${idx === 0 ? 'bg-red-500' : 'bg-brand-green'} text-white text-[9px] font-black uppercase tracking-widest rounded-lg mb-2`}>
-                      {p.badge || (idx === 0 ? 'Tendance' : 'Nouveau')}
-                    </span>
-                    <p className="text-white font-heading font-black text-sm leading-tight mb-1 group-hover:text-brand-green-light transition-colors">
-                      {p.name}
-                    </p>
-                    <p className="text-brand-green-light text-xs font-black uppercase tracking-tighter">
-                      {p.price.toLocaleString()} FCFA
-                    </p>
-                  </div>
-                </Link>
-              ))}
+              {(() => {
+                const featured = products.filter(p => p.featured);
+                const sideProducts = [...featured, ...products.filter(p => !p.featured)].slice(0, 2);
+                
+                return sideProducts.map((p, idx) => (
+                  <Link key={p.id} href={`/shop/${p.id}`} className="relative flex-1 rounded-2xl overflow-hidden group shadow-lg border border-white/5 bg-surface">
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      sizes="25vw"
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-t ${idx === 0 ? 'from-black/90' : 'from-brand-blue/90'} via-transparent to-transparent`} />
+                    <div className="absolute bottom-0 left-0 right-0 p-5">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 ${idx === 0 ? 'bg-red-500' : 'bg-brand-green'} text-white text-[9px] font-black uppercase tracking-widest rounded-lg mb-2 shadow-lg`}>
+                        {p.featured ? <Star size={10} className="fill-white" /> : null}
+                        {p.badge || (p.featured ? 'Sélectionné' : (idx === 0 ? 'Tendance' : 'Nouveau'))}
+                      </span>
+                      <p className="text-white font-heading font-black text-sm leading-tight mb-1 group-hover:text-brand-green-light transition-colors line-clamp-2">
+                        {p.name}
+                      </p>
+                      <p className="text-brand-green-light text-xs font-black uppercase tracking-tighter">
+                        {parseFloat(p.price).toLocaleString()} FCFA
+                      </p>
+                    </div>
+                  </Link>
+                ));
+              })()}
             </div>
           </div>
         </div>
