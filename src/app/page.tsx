@@ -659,71 +659,78 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── PROMO BANNER ─── */}
-      <section className="py-6">
+      {/* ─── BRAND IDENTITY / DECORATIVE ELEMENTS ─── */}
+      <section className="py-12 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            
+            {/* Identity Card 1 - Effort & Craft */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative rounded-2xl overflow-hidden aspect-[2/1] group"
+              transition={{ duration: 0.5 }}
+              className="relative p-8 lg:p-10 rounded-[2.5rem] bg-gradient-to-br from-[#1a1a2e] to-brand-blue border border-white/5 overflow-hidden group shadow-2xl"
             >
-              <Image
-                src="https://images.pexels.com/photos/674483/pexels-photo-674483.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop"
-                alt="Promo alimentaire"
-                fill
-                priority
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/90 to-transparent" />
-              <div className="absolute inset-0 flex flex-col justify-center p-8">
-                <span className="text-brand-green text-xs font-bold uppercase tracking-wider mb-2">
-                  Collection Alimentaire
-                </span>
-                <h3 className="font-heading font-bold text-2xl text-white mb-3">
-                  Saveurs du<br />Sénégal
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-green/20 rounded-full blur-3xl group-hover:bg-brand-green/30 transition-colors duration-700" />
+              <div className="relative z-10 flex flex-col h-full items-start justify-center">
+                <div className="mb-6 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 text-brand-green-light w-fit">
+                  <Sparkles size={32} />
+                </div>
+                <h3 className="font-heading font-black text-2xl lg:text-3xl text-white mb-3">
+                  Bay Sa Waar
                 </h3>
-                <Link
-                  href="/shop?cat=alimentaire"
-                  className="inline-flex items-center gap-1 text-white text-sm font-semibold hover:text-brand-green transition-colors w-fit"
-                >
-                  Explorer <ArrowRight size={14} />
-                </Link>
+                <p className="text-white/70 text-sm leading-relaxed font-medium">
+                  &quot;Sème tes efforts, récolte l&apos;excellence.&quot; Notre philosophie place le travail artisanal acharné et la qualité au sommet.
+                </p>
               </div>
             </motion.div>
 
+            {/* Identity Card 2 - 100% Senegal */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative rounded-2xl overflow-hidden aspect-[2/1] group"
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="relative p-8 lg:p-10 rounded-[2.5rem] bg-brand-green border border-white/10 overflow-hidden group shadow-2xl shadow-brand-green/20"
             >
-              <Image
-                src="https://images.pexels.com/photos/11379510/pexels-photo-11379510.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop"
-                alt="Promo traditionnel"
-                fill
-                priority
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a2e]/90 to-transparent" />
-              <div className="absolute inset-0 flex flex-col justify-center p-8">
-                <span className="text-brand-gold text-xs font-bold uppercase tracking-wider mb-2">
-                  Art Traditionnel
-                </span>
-                <h3 className="font-heading font-bold text-2xl text-white mb-3">
-                  Instruments<br />& Décoration
+              <div className="absolute inset-0 opacity-10 mix-blend-overlay" style={{ backgroundImage: "linear-gradient(#ffffff 2px, transparent 2px), linear-gradient(90deg, #ffffff 2px, transparent 2px)", backgroundSize: "30px 30px" }} />
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/20 rounded-full blur-3xl group-hover:bg-white/30 transition-colors duration-700" />
+              <div className="relative z-10 flex flex-col h-full items-start justify-center">
+                <div className="mb-6 p-4 rounded-2xl bg-black/10 backdrop-blur-md border border-black/10 text-white w-fit">
+                  <HeartHandshake size={32} />
+                </div>
+                <h3 className="font-heading font-black text-2xl lg:text-3xl text-white mb-3">
+                  100% Sénégal
                 </h3>
-                <Link
-                  href="/shop?cat=traditionnel"
-                  className="inline-flex items-center gap-1 text-white text-sm font-semibold hover:text-brand-gold transition-colors w-fit"
-                >
-                  Explorer <ArrowRight size={14} />
-                </Link>
+                <p className="text-white/90 text-sm leading-relaxed font-medium">
+                  De la matière première à l&apos;œuvre finie. Nous soutenons activement les communautés locales et le commerce équitable.
+                </p>
               </div>
             </motion.div>
+
+            {/* Identity Card 3 - Quality */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="relative p-8 lg:p-10 rounded-[2.5rem] bg-white border border-border-color overflow-hidden group shadow-xl"
+            >
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 opacity-50 z-0" />
+              <div className="relative z-10 flex flex-col h-full items-start justify-center">
+                <div className="mb-6 p-4 rounded-2xl bg-brand-blue/5 border border-brand-blue/10 text-brand-blue w-fit">
+                  <Shield size={32} />
+                </div>
+                <h3 className="font-heading font-black text-2xl lg:text-3xl text-brand-blue mb-3">
+                  Qualité Premium
+                </h3>
+                <p className="text-muted text-sm leading-relaxed font-medium">
+                  Une sélection rigoureuse des vendeurs pour vous garantir une authenticité et une qualité inégalées à travers le monde.
+                </p>
+              </div>
+            </motion.div>
+
           </div>
         </div>
       </section>
