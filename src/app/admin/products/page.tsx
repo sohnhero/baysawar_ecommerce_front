@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Star
 } from "lucide-react";
 import { products as initialProducts } from "@/data/products";
 import Link from "next/link";
