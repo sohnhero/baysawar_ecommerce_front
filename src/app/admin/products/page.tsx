@@ -355,18 +355,12 @@ export default function AdminProductsPage() {
                         {/* Mobile Actions */}
                         <div className="pt-4 flex items-center gap-2 border-t border-slate-100/50">
                            <Link 
-                             href={`/shop/product/${product.id}`} 
+                             href={`/shop/${product.id}`} 
                              target="_blank"
                              className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue transition-all shadow-sm"
                            >
                               <ExternalLink size={14} /> Voir
                            </Link>
-                           <button 
-                             onClick={(e) => { e.stopPropagation(); openEditModal(product); }}
-                             className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm"
-                           >
-                              <Edit2 size={14} /> Éditer
-                           </button>
                            <button 
                              onClick={(e) => { e.stopPropagation(); setDeleteId(product.id); }}
                              className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-all shadow-sm"
@@ -465,7 +459,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <Link href={`/shop/product/${product.id}`} target="_blank" className="p-2 text-slate-400 hover:text-brand-blue hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100">
+                        <Link href={`/shop/${product.id}`} target="_blank" className="p-2 text-slate-400 hover:text-brand-blue hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100">
                           <ExternalLink size={14} />
                         </Link>
                         <button onClick={() => openEditModal(product)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100">
