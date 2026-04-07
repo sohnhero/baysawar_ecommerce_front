@@ -128,6 +128,8 @@ export default function HomePage() {
 
     // Add Active Campaign Slide
     if (activeCampaign) {
+      const firstProductImage = activeCampaign.items?.[0]?.product?.image;
+      
       baseSlides.push({
         tag: "🔥 EN DIRECT",
         title: activeCampaign.title,
@@ -135,7 +137,7 @@ export default function HomePage() {
         desc: activeCampaign.description || "Profitez de réductions exclusives sur les pépites de notre terroir.",
         cta: "Voir les Offres",
         ctaLink: "/#flash-deals",
-        image: activeCampaign.image || "https://images.pexels.com/photos/30754235/pexels-photo-30754235.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        image: activeCampaign.image || firstProductImage || "https://images.pexels.com/photos/30754235/pexels-photo-30754235.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
         color: "from-[#1a1a2e]/95",
       });
     }
