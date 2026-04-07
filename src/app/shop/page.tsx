@@ -193,22 +193,29 @@ function ShopContent() {
                 >
                   Tout ({products.length})
                 </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.slug}
-                    onClick={() => {
-                      setSelectedCat(cat.slug);
-                      setSelectedSeller("");
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
-                      selectedCat === cat.slug
-                        ? "bg-brand-green/10 text-brand-green font-medium"
-                        : "hover:bg-surface text-muted"
-                    }`}
-                  >
-                    {cat.icon} {cat.name} ({cat.productCount})
-                  </button>
-                ))}
+                {categories.map((cat) => {
+                  const count = products.filter(p => {
+                    const catSlug = typeof p.category === 'object' ? p.category.slug : p.categorySlug;
+                    return catSlug === cat.slug;
+                  }).length;
+
+                  return (
+                    <button
+                      key={cat.slug}
+                      onClick={() => {
+                        setSelectedCat(cat.slug);
+                        setSelectedSeller("");
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
+                        selectedCat === cat.slug
+                          ? "bg-brand-green/10 text-brand-green font-medium"
+                          : "hover:bg-surface text-muted"
+                      }`}
+                    >
+                      {cat.icon} {cat.name} ({count})
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Price Range UI */}
