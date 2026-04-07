@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { User, Package, Mail, MapPin, Phone, Edit2, Camera, Loader2, X, CheckCircle2, Store, Briefcase, FileText, LayoutDashboard, Clock, AlertCircle, ChevronRight, Truck } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
-import { api } from "@/lib/api";
+import { api, validateImageSize } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -116,12 +116,12 @@ export default function AccountPage() {
 
     setUploading(true);
     try {
+      validateImageSize(file);
       const res = await api.upload<{ url: string }>("/upload", file);
       const updatedUser = await api.put<any>("/users/profile", { image: res.url });
 
       // Update store state
-      const token = localStorage.getItem("baysawarr-token") || "";
-      login(updatedUser, token);
+      login(updatedUser);
 
       toast.success("Photo de profil mise à jour");
     } catch (error) {
@@ -136,8 +136,7 @@ export default function AccountPage() {
     setLoading(true);
     try {
       const updatedUser = await api.put<any>("/users/profile", data);
-      const token = localStorage.getItem("baysawarr-token") || "";
-      login(updatedUser, token);
+      login(updatedUser);
       toast.success("Profil mis à jour");
       setShowEditModal(false);
     } catch (error) {

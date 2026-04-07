@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { api } from "@/lib/api";
+import { useAuthStore } from "./auth-store";
 
 export interface CartItem {
   productId: string;
@@ -88,15 +89,15 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: () => {
         set({ items: [] });
-        const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
-        if (token) {
+        const isAuthenticated = useAuthStore.getState().isAuthenticated;
+        if (isAuthenticated) {
           api.delete("/cart/clear").catch(console.error);
         }
       },
 
       fetchCart: async () => {
-        const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
-        if (!token) return;
+        const isAuthenticated = useAuthStore.getState().isAuthenticated;
+        if (!isAuthenticated) return;
 
         try {
           const data = await api.get<any[]>("/cart");
@@ -114,8 +115,8 @@ export const useCartStore = create<CartStore>()(
       },
 
       syncCart: async () => {
-        const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
-        if (!token) return;
+        const isAuthenticated = useAuthStore.getState().isAuthenticated;
+        if (!isAuthenticated) return;
 
         try {
           const items = get().items.map(i => ({
@@ -138,8 +139,8 @@ export const useCartStore = create<CartStore>()(
       },
 
       onLogin: async () => {
-        const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
-        if (!token) return;
+        const isAuthenticated = useAuthStore.getState().isAuthenticated;
+        if (!isAuthenticated) return;
 
         try {
           const serverData = await api.get<any[]>("/cart");

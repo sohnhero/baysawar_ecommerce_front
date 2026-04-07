@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { api } from "@/lib/api";
+import { useAuthStore } from "./auth-store";
 
 export interface WishlistItem {
   id: string;
@@ -31,8 +32,8 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
   loading: false,
 
   fetchWishlist: async () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("baysawarr-token") : null;
-    if (!token) {
+    const isAuthenticated = useAuthStore.getState().isAuthenticated;
+    if (!isAuthenticated) {
       set({ items: [], loading: false });
       return;
     }
