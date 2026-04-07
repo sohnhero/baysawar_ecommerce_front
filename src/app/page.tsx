@@ -124,18 +124,7 @@ export default function HomePage() {
   const products = dbProducts;
 
   const heroSlides = useMemo(() => {
-    const baseSlides = [
-      {
-        tag: "Collection 2026",
-        title: "Vendeurs Premium",
-        titleAccent: "du Sénégal",
-        desc: "L'excellence du savoir-faire traditionnel, sélectionné pour votre intérieur moderne.",
-        cta: "Découvrir l'Atelier",
-        ctaLink: "/shop",
-        image: "https://images.pexels.com/photos/29663367/pexels-photo-29663367.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-        color: "from-brand-blue/95",
-      }
-    ];
+    const baseSlides: any[] = [];
 
     // Add Active Campaign Slide
     if (activeCampaign) {
@@ -196,6 +185,19 @@ export default function HomePage() {
           color: "from-[#2a1810]/95",
         });
       }
+    }
+    // Final safety fallback to prevent carousel crash if completely empty
+    if (baseSlides.length === 0) {
+      baseSlides.push({
+        tag: "Boutique Officielle",
+        title: "Baysawarr E-Commerce",
+        titleAccent: "Premium",
+        desc: "Découvrez notre sélection exclusive de produits locaux et artisanaux.",
+        cta: "Découvrir",
+        ctaLink: "/shop",
+        image: "https://images.pexels.com/photos/29663367/pexels-photo-29663367.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        color: "from-brand-blue/95",
+      });
     }
 
     return baseSlides;
