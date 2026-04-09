@@ -123,6 +123,14 @@ export default function Header() {
             </motion.p>
           </div>
           <div className="hidden sm:flex items-center gap-3">
+            <a
+              href="https://www.fabiratrading.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1 bg-brand-green hover:bg-brand-green-light text-white text-[10px] uppercase font-bold tracking-wider rounded-md transition-colors shadow-sm"
+            >
+              Découvrir BAYSAWARR <ArrowRight size={10} />
+            </a>
             <button
               onClick={toggle}
               className="p-1 rounded hover:bg-white/10 transition-colors"
@@ -555,6 +563,16 @@ export default function Header() {
                     Ma Liste de Souhaits
                   </Link>
                 )}
+
+                <a 
+                  href="https://www.fabiratrading.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="block px-4 py-4 rounded-xl text-sm font-black hover:bg-surface transition-colors flex items-center gap-3 border border-transparent hover:border-border-color text-brand-green"
+                >
+                  <span className="w-8 h-8 rounded-lg bg-brand-green/10 text-brand-green flex items-center justify-center text-base">🌍</span>
+                  Site BAYSAWARR
+                </a>
 
 
                 <div className="px-5 py-4 text-[10px] font-black text-muted uppercase tracking-[0.2em] mt-2">
