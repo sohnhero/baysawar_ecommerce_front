@@ -54,7 +54,8 @@ export const useAuthStore = create<AuthStore>()(
             set({ user: data.user, isAuthenticated: true });
           }
         } catch (error) {
-          // Auth refresh failed - silently handle to avoid leaking details
+          // Token is dead or missing - clean up ghost session
+          set({ user: null, isAuthenticated: false });
         }
       },
     }),
