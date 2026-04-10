@@ -11,6 +11,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import { api } from "@/lib/api";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/auth-store";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -115,30 +116,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-transparent">
         <div className="bg-surface border-b border-border-color">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="h-4 bg-border-color rounded w-48 animate-pulse" />
+            <Skeleton className="h-4 w-48" />
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-pulse">
-            <div>
-              <div className="aspect-square bg-surface rounded-2xl mb-4" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <Skeleton className="aspect-square rounded-2xl" />
               <div className="flex gap-3">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-20 h-20 bg-surface rounded-xl" />
+                  <Skeleton key={i} className="w-20 h-20 rounded-xl" />
                 ))}
               </div>
             </div>
             <div className="space-y-6">
-              <div className="h-4 bg-surface rounded w-1/4" />
-              <div className="h-10 bg-surface rounded w-3/4" />
-              <div className="h-6 bg-surface rounded w-1/3" />
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-6 w-1/3" />
               <div className="space-y-2">
-                <div className="h-4 bg-surface rounded w-full" />
-                <div className="h-4 bg-surface rounded w-full" />
-                <div className="h-4 bg-surface rounded w-2/3" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
               </div>
-              <div className="h-12 bg-surface rounded-xl w-full" />
-              <div className="h-14 bg-surface rounded-xl w-full" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-14 w-full rounded-xl" />
             </div>
           </div>
         </div>
@@ -163,7 +164,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const product = {
     ...dbProduct,
     image: dbProduct.image,
-    images: dbProduct.images || [dbProduct.image],
+    images: (dbProduct.images && dbProduct.images.length > 0) ? dbProduct.images : [dbProduct.image],
     rating: parseFloat(dbProduct.rating) || 5,
     reviewCount: dbProduct.reviewCount || 0,
     longDescription: dbProduct.longDescription || dbProduct.description,
