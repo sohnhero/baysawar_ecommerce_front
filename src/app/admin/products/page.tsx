@@ -130,7 +130,7 @@ export default function AdminProductsPage() {
         await api.put(`/products/${editingId}`, dataToSave);
         toast.success("Produit mis à jour avec succès");
       } else {
-        if (!imageUrl) {
+        if (!mainImageUrl) {
           toast.error("Veuillez sélectionner une image");
           setLoading(false);
           return;
