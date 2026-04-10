@@ -151,7 +151,7 @@ export default function CheckoutPage() {
 
   const handleConfirm = async () => {
     if (!validateStep()) return;
-    
+
     setLoading(true);
     try {
       const orderData = {
@@ -167,6 +167,21 @@ export default function CheckoutPage() {
       };
 
       const result = await api.post<any>("/orders", orderData);
+
+      // Paiement en ligne → le backend retourne directement paymentUrl
+      if (formData.paymentMethod !== "cod" && result.paymentUrl) {
+        clearCart();
+        window.location.href = result.paymentUrl;
+        return;
+      }
+
+      // Paiement en ligne mais échec d'initiation
+      if (formData.paymentMethod !== "cod" && result.paymentError) {
+        toast.error("Impossible d'initier le paiement. Réessayez ou choisissez un autre mode.");
+        return;
+      }
+
+      // Paiement à la livraison → succès direct
       setOrderId(result.id);
       clearCart();
       setStep(4);
@@ -174,7 +189,7 @@ export default function CheckoutPage() {
       console.error("Failed to create order:", error);
       const message = error.message || "Une erreur est survenue lors de la création de la commande.";
       toast.error(message);
-      
+
       // If it's a validation error about phone, go back to step 0
       if (message.toLowerCase().includes("phone") || message.toLowerCase().includes("téléphone")) {
         setStep(0);
