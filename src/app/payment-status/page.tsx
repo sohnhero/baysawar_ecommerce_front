@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, XCircle, Clock, ShoppingBag, Loader2 } from "lucide-react";
@@ -15,7 +15,7 @@ interface VerifyResponse {
   orderStatus: string;
 }
 
-export default function PaymentStatusPage() {
+function PaymentStatusContent() {
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const [verifiedStatus, setVerifiedStatus] = useState<VerifiedStatus>("loading");
@@ -187,5 +187,17 @@ export default function PaymentStatusPage() {
         </Link>
       </motion.div>
     </div>
+  );
+}
+
+export default function PaymentStatusPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[80vh] flex items-center justify-center bg-surface">
+        <Loader2 size={48} className="animate-spin text-brand-green" />
+      </div>
+    }>
+      <PaymentStatusContent />
+    </Suspense>
   );
 }
