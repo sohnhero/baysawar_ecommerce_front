@@ -128,8 +128,8 @@ export default function HomePage() {
   const heroSlides = useMemo(() => {
     const baseSlides: any[] = [];
 
-    // Add Active Campaign Slide
-    if (activeCampaign) {
+    // Add Active Campaign Slide if it exists and has items
+    if (activeCampaign && activeCampaign.items?.length > 0) {
       const firstProductImage = activeCampaign.items?.[0]?.product?.image;
 
       baseSlides.push({
@@ -170,7 +170,7 @@ export default function HomePage() {
         cta: "Découvrir",
         ctaLink: `/shop/${likedProd.id}`,
         image: likedProd.image,
-        color: "from-[#b71c1c]/95",
+        color: "from-[#173464]/95",
       });
     }
 
