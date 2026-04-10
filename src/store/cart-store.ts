@@ -104,7 +104,7 @@ export const useCartStore = create<CartStore>()(
           const items: CartItem[] = data.map(item => ({
             productId: item.productId,
             name: item.product?.name || "Produit",
-            price: parseFloat(item.product?.price || "0"),
+            price: parseFloat(item.product?.effectivePrice || item.product?.price || "0"),
             image: item.product?.image || "",
             quantity: item.quantity,
           }));
@@ -128,7 +128,7 @@ export const useCartStore = create<CartStore>()(
           const syncedItems: CartItem[] = data.map(item => ({
             productId: item.productId,
             name: item.product?.name || "Produit",
-            price: parseFloat(item.product?.price || "0"),
+            price: parseFloat(item.product?.effectivePrice || item.product?.price || "0"),
             image: item.product?.image || "",
             quantity: item.quantity,
           }));
@@ -148,7 +148,7 @@ export const useCartStore = create<CartStore>()(
           const serverItems: CartItem[] = serverData.map(item => ({
             productId: item.productId,
             name: item.product?.name || "Produit",
-            price: parseFloat(item.product?.price || "0"),
+            price: parseFloat(item.product?.effectivePrice || item.product?.price || "0"),
             image: item.product?.image || "",
             quantity: item.quantity,
           }));
