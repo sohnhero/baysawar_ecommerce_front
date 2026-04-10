@@ -37,9 +37,12 @@ export async function apiFetch<T>(
       errorMessage = response.statusText || errorMessage;
     }
     
-    // In production, we avoid logging the full error to prevent information leakage
+    // In development, log the error unless it's an expected 401 on /auth/me
     if (process.env.NODE_ENV !== "production") {
-      console.error(`API Error [${response.status}] ${endpoint}:`, errorMessage);
+      const isAuthMeSilence = response.status === 401 && endpoint === "/auth/me";
+      if (!isAuthMeSilence) {
+        console.error(`API Error [${response.status}] ${endpoint}:`, errorMessage);
+      }
     }
     
     throw new Error(errorMessage);
