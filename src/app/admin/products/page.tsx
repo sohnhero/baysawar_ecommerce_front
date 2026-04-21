@@ -63,10 +63,11 @@ export default function AdminProductsPage() {
     stock: 10,
     description: "",
     image: "",
+    images: [] as string[],
     featured: false
   };
   const [formData, setFormData] = useState(defaultForm);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<{file: File, id: string}[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -92,25 +93,44 @@ export default function AdminProductsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      let imageUrl = formData.image;
+      let mainImageUrl = formData.image;
+      const galleryUrls = [...(formData.images || [])];
 
-      if (selectedFile) {
+      if (selectedFiles.length > 0) {
         toast.info(editingId ? "Mise à jour en cours..." : "Création en cours...", {
           icon: <Loader2 size={18} className="animate-spin text-brand-blue" />,
           className: "rounded-2xl font-semibold text-xs border border-slate-100",
           autoClose: 2000
         });
-        const res = await api.upload<{ url: string }>("/upload", selectedFile);
-        imageUrl = res.url;
+
+        const uploadPromises = selectedFiles.map(f => api.upload<{ url: string }>("/upload", f.file));
+        const results = await Promise.all(uploadPromises);
+        const newUrls = results.map(r => r.url);
+        
+        // If no main image exists, set the first new one as main
+        if (!mainImageUrl && newUrls.length > 0) {
+          mainImageUrl = newUrls[0];
+        }
+        
+        galleryUrls.push(...newUrls);
       }
 
-      const dataToSave = { ...formData, image: imageUrl };
+      // Ensure mainImageUrl is in galleryUrls if not present
+      if (mainImageUrl && !galleryUrls.includes(mainImageUrl)) {
+        galleryUrls.unshift(mainImageUrl);
+      }
+
+      const dataToSave = { 
+        ...formData, 
+        image: mainImageUrl, 
+        images: galleryUrls 
+      };
 
       if (editingId) {
         await api.put(`/products/${editingId}`, dataToSave);
         toast.success("Produit mis à jour avec succès");
       } else {
-        if (!imageUrl) {
+        if (!mainImageUrl) {
           toast.error("Veuillez sélectionner une image");
           setLoading(false);
           return;
@@ -120,7 +140,7 @@ export default function AdminProductsPage() {
       }
       
       setShowModal(false);
-      setSelectedFile(null);
+      setSelectedFiles([]);
       fetchData();
     } catch (error) {
       console.error("Failed to save product:", error);
@@ -133,14 +153,14 @@ export default function AdminProductsPage() {
   const openCreateModal = () => {
     setEditingId(null);
     setFormData(defaultForm);
-    setSelectedFile(null);
+    setSelectedFiles([]);
     if (categories.length > 0) setFormData(prev => ({ ...prev, category: categories[0].slug }));
     setShowModal(true);
   };
 
   const openEditModal = (product: any) => {
     setEditingId(product.id);
-    setSelectedFile(null);
+    setSelectedFiles([]);
     setFormData({
       name: product.name,
       category: typeof product.category === 'object' ? product.category.slug : product.category,
@@ -148,6 +168,7 @@ export default function AdminProductsPage() {
       stock: product.stock,
       description: product.description,
       image: product.image || defaultForm.image,
+      images: product.images || [],
       featured: product.featured || false
     });
     setShowModal(true);
@@ -182,16 +203,19 @@ export default function AdminProductsPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        validateImageSize(file);
-        setSelectedFile(file);
-        setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
-      } catch (error: any) {
-        toast.error(error.message);
-        e.target.value = ""; // clear input
-      }
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const newFiles: {file: File, id: string}[] = [];
+      files.forEach(file => {
+        try {
+          validateImageSize(file);
+          newFiles.push({ file, id: Math.random().toString(36).substring(7) });
+        } catch (error: any) {
+          toast.error(`${file.name}: ${error.message}`);
+        }
+      });
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+      e.target.value = ""; // clear input
     }
   };
 
@@ -601,54 +625,90 @@ export default function AdminProductsPage() {
                   </div>
 
                   <div className="col-span-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Image du Produit</label>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Images du Produit</label>
                     
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                           <input 
-                             type="file" 
-                             ref={fileInputRef}
-                             className="hidden" 
-                             accept="image/*"
-                             onChange={handleFileChange}
-                           />
-                           <button
-                             type="button"
-                             onClick={() => fileInputRef.current?.click()}
-                             className="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 hover:border-brand-blue hover:bg-brand-blue/5 transition-all group"
-                           >
-                             <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center mb-2 group-hover:text-brand-blue group-hover:bg-brand-blue/10 transition-all">
-                               <Upload size={20} />
-                             </div>
-                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                               {selectedFile ? selectedFile.name : "Cliquez pour uploader"}
-                             </span>
-                           </button>
-                        </div>
+                    <div className="space-y-4">
+                      {/* Upload Area */}
+                      <div className="flex items-center gap-2">
+                         <input 
+                           type="file" 
+                           ref={fileInputRef}
+                           className="hidden" 
+                           accept="image/*"
+                           multiple
+                           onChange={handleFileChange}
+                         />
+                         <button
+                           type="button"
+                           onClick={() => fileInputRef.current?.click()}
+                           className="w-full flex items-center justify-center gap-4 border-2 border-dashed border-slate-200 rounded-2xl p-6 hover:border-brand-blue hover:bg-brand-blue/5 transition-all group"
+                         >
+                           <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center group-hover:text-brand-blue group-hover:bg-brand-blue/10 transition-all">
+                             <Upload size={20} />
+                           </div>
+                           <div className="text-left">
+                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-900 block">Uploader des images</span>
+                             <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">Format JPG, PNG • Max 2Mo par fichier</span>
+                           </div>
+                         </button>
                       </div>
-                      
-                      {formData.image && (
-                        <div className="w-32 h-32 rounded-xl overflow-hidden border border-slate-100 relative shrink-0 bg-slate-50">
-                          <Image src={formData.image} alt="Preview" fill className="object-cover" />
-                          <button 
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => ({ ...prev, image: "" }));
-                              setSelectedFile(null);
-                            }}
-                            className="absolute top-1 right-1 p-1 bg-white/80 backdrop-blur-sm rounded-lg text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      )}
-                      {!formData.image && (
-                        <div className="w-32 h-32 rounded-xl border-2 border-dashed border-slate-100 flex flex-col items-center justify-center bg-slate-50/50 shrink-0">
-                          <Package size={24} className="text-slate-200 mb-1" />
-                          <span className="text-[8px] font-black uppercase text-slate-300">Aucune image</span>
-                        </div>
-                      )}
+
+                      {/* Gallery Grid */}
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                        {/* Existing Images */}
+                        {(formData.images || []).map((img, i) => (
+                          <div key={i} className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${formData.image === img ? 'border-brand-blue shadow-lg' : 'border-slate-100 opacity-80 hover:opacity-100'}`}>
+                            <Image src={img} alt="" fill className="object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-all flex flex-col items-center justify-center gap-1">
+                               {formData.image !== img && (
+                                 <button 
+                                   type="button"
+                                   onClick={() => setFormData({...formData, image: img})}
+                                   className="p-1.5 bg-brand-blue text-white rounded-lg text-[8px] font-black uppercase tracking-tight"
+                                 >
+                                   Principal
+                                 </button>
+                               )}
+                               <button 
+                                 type="button"
+                                 onClick={() => {
+                                   const newImages = formData.images.filter(url => url !== img);
+                                   const newMain = formData.image === img ? (newImages[0] || "") : formData.image;
+                                   setFormData({...formData, images: newImages, image: newMain});
+                                 }}
+                                 className="p-1.5 bg-rose-500 text-white rounded-lg"
+                               >
+                                 <Trash2 size={12} />
+                               </button>
+                            </div>
+                            {formData.image === img && (
+                              <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-brand-blue text-white text-[7px] font-black uppercase tracking-tighter rounded-md shadow-sm">
+                                Principal
+                              </div>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* Newly Selected Files (Previews) */}
+                        {selectedFiles.map((sf, i) => (
+                          <div key={sf.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-brand-green border-dashed bg-brand-green/5">
+                            <Image src={URL.createObjectURL(sf.file)} alt="" fill className="object-cover opacity-60" />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <Loader2 size={16} className="text-brand-green animate-spin" />
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => setSelectedFiles(prev => prev.filter(f => f.id !== sf.id))}
+                              className="absolute top-1 right-1 p-1 bg-white/80 backdrop-blur-sm rounded-lg text-rose-500 shadow-sm"
+                            >
+                              <X size={12} />
+                            </button>
+                            <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-brand-green text-white text-[7px] font-black uppercase tracking-tighter rounded-md">
+                              Nouveau
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 

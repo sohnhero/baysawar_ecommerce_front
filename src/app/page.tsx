@@ -29,6 +29,8 @@ import { artisans as initialArtisans } from "@/data/artisans";
 import ProductCard from "@/components/ui/ProductCard";
 import CategoryCard from "@/components/ui/CategoryCard";
 import ArtisanCard from "@/components/ui/ArtisanCard";
+import SkeletonCard from "@/components/ui/SkeletonCard";
+import { HeroSkeleton, CategorySkeleton, ArtisanSkeleton, ProductGridSkeleton } from "@/components/ui/HomeSkeletons";
 import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/store/auth-store";
 import { api } from "@/lib/api";
@@ -126,8 +128,8 @@ export default function HomePage() {
   const heroSlides = useMemo(() => {
     const baseSlides: any[] = [];
 
-    // Add Active Campaign Slide
-    if (activeCampaign) {
+    // Add Active Campaign Slide if it exists and has items
+    if (activeCampaign && activeCampaign.items?.length > 0) {
       const firstProductImage = activeCampaign.items?.[0]?.product?.image;
 
       baseSlides.push({
@@ -168,7 +170,7 @@ export default function HomePage() {
         cta: "Découvrir",
         ctaLink: `/shop/${likedProd.id}`,
         image: likedProd.image,
-        color: "from-[#b71c1c]/95",
+        color: "from-[#173464]/95",
       });
     }
 
@@ -277,7 +279,10 @@ export default function HomePage() {
       {/* ─── HERO SECTION — E-COMMERCE STYLE ─── */}
       <section className="relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {loading ? (
+            <HeroSkeleton />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Main Slider */}
             <div className="lg:col-span-3 relative rounded-2xl overflow-hidden aspect-[4/5] sm:aspect-[16/9] lg:aspect-[2/1] group shadow-2xl border border-white/5">
               <AnimatePresence mode="wait">
@@ -445,6 +450,7 @@ export default function HomePage() {
               })()}
             </div>
           </div>
+          )}
         </div>
       </section>
 
@@ -502,7 +508,10 @@ export default function HomePage() {
               )}
             </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {loading ? (
+              <ProductGridSkeleton count={4} />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {featuredProducts.map((p: any) => (
                 <motion.div
                   key={p.id}
@@ -590,8 +599,9 @@ export default function HomePage() {
                 </motion.div>
               ))}
             </div>
-          </div>
-        </section>
+          )}
+        </div>
+      </section>
       )}
 
       {/* ─── CATEGORIES ─── */}
@@ -614,11 +624,15 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {categories.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} />
-            ))}
-          </div>
+          {loading ? (
+            <CategorySkeleton />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {categories.map((cat) => (
+                <CategoryCard key={cat.id} category={cat} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -642,11 +656,15 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {popularProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          {loading ? (
+            <ProductGridSkeleton count={8} />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              {popularProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
 
           <div className="mt-6 text-center sm:hidden">
             <Link
@@ -751,11 +769,15 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {artisans.map((a) => (
-              <ArtisanCard key={a.id} artisan={a} />
-            ))}
-          </div>
+          {loading ? (
+            <ArtisanSkeleton />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {artisans.map((a) => (
+                <ArtisanCard key={a.id} artisan={a} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
