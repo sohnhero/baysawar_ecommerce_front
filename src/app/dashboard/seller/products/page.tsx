@@ -440,11 +440,11 @@ export default function SellerProductsPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-1">Prix (FCFA)</label>
-                      <input type="number" required value={formData.price} onChange={e => setFormData({...formData, price: parseInt(e.target.value)})} className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all shadow-sm" />
+                      <input type="number" required value={formData.price === 0 ? "" : formData.price} onChange={e => setFormData({...formData, price: e.target.value === "" ? 0 : parseInt(e.target.value)})} className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all shadow-sm" />
                     </div>
                     <div>
                       <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-1">Stock</label>
-                      <input type="number" required value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value)})} className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all shadow-sm" />
+                      <input type="number" required value={formData.stock === 0 ? "" : formData.stock} onChange={e => setFormData({...formData, stock: e.target.value === "" ? 0 : parseInt(e.target.value)})} className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all shadow-sm" />
                     </div>
                   </div>
 

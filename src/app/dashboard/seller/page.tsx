@@ -2,20 +2,24 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  DollarSign, 
-  ShoppingCart, 
-  Package, 
-  TrendingUp, 
-  ArrowUpRight, 
+import {
+  DollarSign,
+  ShoppingCart,
+  Package,
+  TrendingUp,
+  ArrowUpRight,
   Activity,
   PackageCheck,
   Clock,
   ChevronRight,
-  User
+  User,
+  Copy,
+  Share2,
+  Check
 } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
+import { toast } from "react-toastify";
 import { 
   AreaChart, 
   Area, 
@@ -38,14 +42,30 @@ export default function SellerDashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [artisan, setArtisan] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = () => {
+    if (!artisan?.slug) { toast.error("Slug de boutique introuvable"); return; }
+    const url = `${window.location.origin}/boutique/${artisan.slug}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const whatsappUrl = artisan?.slug
+    ? `https://wa.me/?text=${encodeURIComponent(`Découvrez ma boutique sur Baysawarr : ${typeof window !== "undefined" ? window.location.origin : ""}/boutique/${artisan.slug}`)}`
+    : "#";
 
   useEffect(() => {
     const fetchSellerData = async () => {
       try {
-        // We'll need a backend endpoint for seller stats. 
-        // For now, let's fetch orders and derive some basic stats
-        // In a real scenario, /artisans/stats would be better.
-        const ordersData = await api.get<any[]>("/orders/seller");
+        const [ordersData, artisanData] = await Promise.all([
+          api.get<any[]>("/orders/seller"),
+          api.get<any>("/artisans/me"),
+        ]);
+        setArtisan(artisanData);
         setOrders(ordersData);
         
         const totalRevenue = ordersData
@@ -102,10 +122,30 @@ export default function SellerDashboardPage() {
           <h1 className="text-xl font-black text-slate-900 tracking-tight">Vue d&apos;ensemble de la Boutique</h1>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Suivez vos performances en temps réel</p>
         </div>
-        <div className="flex items-center gap-3">
-            <Link href="/dashboard/seller/products" className="px-5 py-2.5 bg-brand-green text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-brand-green/20">
-                Nouveau Produit
-            </Link>
+        <div className="flex items-center gap-3 flex-wrap">
+          {artisan?.slug && (
+            <>
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all"
+              >
+                {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                {copied ? "Copié !" : "Copier le lien"}
+              </button>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#25D366] hover:bg-[#1ebe5c] text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all"
+              >
+                <Share2 size={14} />
+                WhatsApp
+              </a>
+            </>
+          )}
+          <Link href="/dashboard/seller/products" className="px-5 py-2.5 bg-brand-green text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-brand-green/20">
+            Nouveau Produit
+          </Link>
         </div>
       </div>
 

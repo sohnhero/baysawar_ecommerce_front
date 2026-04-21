@@ -10,18 +10,19 @@ import {
   XCircle,
   Clock,
   Eye,
-  MoreVertical,
-  Filter,
   User,
-  MapPin,
   Calendar,
-  AlertCircle,
   Loader2,
-  ChevronRight,
   ArrowLeft,
   ArrowRight,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Wallet,
+  TrendingUp,
+  Package,
+  ShoppingCart,
+  Send,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
@@ -45,17 +46,32 @@ const statusConfig: Record<string, any> = {
   },
 };
 
+const methodLabels: Record<string, string> = {
+  wave_money: "Wave Money",
+  orange_money: "Orange Money",
+  bank_transfer: "Virement bancaire",
+  cash: "Espèces",
+};
+
 export default function AdminSellersPage() {
+  const [activeTab, setActiveTab] = useState<"gestion" | "finances">("gestion");
+
+  // Gestion tab state
   const [sellers, setSellers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
+  // Finances tab state
+  const [vendorStats, setVendorStats] = useState<any[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [payoutTarget, setPayoutTarget] = useState<any | null>(null);
+  const [payoutForm, setPayoutForm] = useState({ amount: "", method: "wave_money", notes: "" });
+  const [payoutLoading, setPayoutLoading] = useState(false);
 
   const toggleRow = (id: string) => {
     const next = new Set(expandedRows);
@@ -77,9 +93,46 @@ export default function AdminSellersPage() {
     }
   };
 
+  const fetchVendorStats = async () => {
+    setStatsLoading(true);
+    try {
+      const data = await api.get<any[]>("/admin/vendor-stats");
+      setVendorStats(data);
+    } catch (error) {
+      toast.error("Erreur de chargement des statistiques");
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const handlePayout = async () => {
+    if (!payoutTarget || !payoutForm.amount) return;
+    setPayoutLoading(true);
+    try {
+      await api.post("/admin/vendor-payouts", {
+        artisanId: payoutTarget.id,
+        amount: parseFloat(payoutForm.amount),
+        method: payoutForm.method,
+        notes: payoutForm.notes || undefined,
+      });
+      toast.success(`Virement de ${Number(payoutForm.amount).toLocaleString()} FCFA enregistré`);
+      setPayoutTarget(null);
+      setPayoutForm({ amount: "", method: "wave_money", notes: "" });
+      fetchVendorStats();
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors du virement");
+    } finally {
+      setPayoutLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "finances") fetchVendorStats();
+  }, [activeTab]);
 
   const handleUpdateStatus = async (id: string, status: string, adminNotes: string = "") => {
     try {
@@ -120,12 +173,149 @@ export default function AdminSellersPage() {
               <Store size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">Gestion des Vendeurs</h1>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Gérer les demandes et profils partenaires</p>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">Vendeurs</h1>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Gestion des partenaires et finances</p>
             </div>
+          </div>
+          <div className="flex bg-slate-50 p-1 rounded-2xl border border-slate-100">
+            <button
+              onClick={() => setActiveTab("gestion")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "gestion" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            >
+              <Store size={14} /> Gestion
+            </button>
+            <button
+              onClick={() => setActiveTab("finances")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "finances" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            >
+              <Wallet size={14} /> Finances
+            </button>
           </div>
         </div>
 
+        {/* Finances Tab */}
+        {activeTab === "finances" && (
+          <div className="space-y-6">
+            {statsLoading ? (
+              <div className="flex items-center justify-center h-64"><Loader2 size={32} className="animate-spin text-emerald-500" /></div>
+            ) : (
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-50/50 border-b border-slate-100">
+                        <th className="px-6 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Vendeur</th>
+                        <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]"><TrendingUp size={12} className="inline mr-1" />Ventes</th>
+                        <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]"><ShoppingCart size={12} className="inline mr-1" />Commandes</th>
+                        <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]"><Package size={12} className="inline mr-1" />Produits</th>
+                        <th className="px-4 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Déjà viré</th>
+                        <th className="px-4 py-5 text-[9px] font-black text-emerald-600 uppercase tracking-[0.2em]">Solde à virer</th>
+                        <th className="px-6 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {vendorStats.length === 0 ? (
+                        <tr><td colSpan={7} className="text-center py-20 text-slate-300 font-bold text-[10px] uppercase tracking-widest">Aucun vendeur approuvé</td></tr>
+                      ) : vendorStats.map((v: any) => {
+                        const balance = (v.total_revenue || 0) - (v.total_paid || 0);
+                        return (
+                          <tr key={v.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-6 py-4">
+                              <p className="font-black text-slate-900 text-xs tracking-tight uppercase">{v.name}</p>
+                              <p className="text-[9px] text-slate-400 font-bold">{v.specialty}</p>
+                            </td>
+                            <td className="px-4 py-4 font-black text-emerald-600 text-sm">{Number(v.total_revenue || 0).toLocaleString()} <span className="text-[9px] font-bold text-slate-400">FCFA</span></td>
+                            <td className="px-4 py-4 font-black text-slate-700 text-sm">{v.order_count}</td>
+                            <td className="px-4 py-4 font-black text-slate-700 text-sm">{v.product_count}</td>
+                            <td className="px-4 py-4 font-bold text-slate-500 text-sm">{Number(v.total_paid || 0).toLocaleString()} <span className="text-[9px] text-slate-400">FCFA</span></td>
+                            <td className="px-4 py-4">
+                              <span className={`font-black text-sm ${balance > 0 ? "text-amber-600" : "text-slate-400"}`}>
+                                {Number(balance).toLocaleString()} <span className="text-[9px] font-bold text-slate-400">FCFA</span>
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button
+                                onClick={() => { setPayoutTarget(v); setPayoutForm({ amount: String(Math.max(0, balance)), method: "wave_money", notes: "" }); }}
+                                disabled={balance <= 0}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ml-auto"
+                              >
+                                <Send size={12} /> Virer
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Payout Modal */}
+        <AnimatePresence>
+          {payoutTarget && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPayoutTarget(null)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+              <motion.div initial={{ scale: 0.97, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.97, opacity: 0, y: 10 }} className="relative bg-white rounded-[40px] p-8 w-full max-w-md shadow-2xl">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="font-black text-slate-900 text-lg tracking-tight">Enregistrer un virement</h2>
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">{payoutTarget.name}</p>
+                  </div>
+                  <button onClick={() => setPayoutTarget(null)} className="p-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-400"><X size={18} /></button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Montant (FCFA)</label>
+                    <input
+                      type="number"
+                      value={payoutForm.amount}
+                      onChange={e => setPayoutForm(f => ({ ...f, amount: e.target.value }))}
+                      className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-black focus:outline-none focus:border-emerald-500 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Méthode</label>
+                    <select
+                      value={payoutForm.method}
+                      onChange={e => setPayoutForm(f => ({ ...f, method: e.target.value }))}
+                      className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
+                    >
+                      {Object.entries(methodLabels).map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1">Notes (optionnel)</label>
+                    <input
+                      type="text"
+                      value={payoutForm.notes}
+                      onChange={e => setPayoutForm(f => ({ ...f, notes: e.target.value }))}
+                      placeholder="Ex: Virement semaine 15..."
+                      className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={handlePayout}
+                  disabled={payoutLoading || !payoutForm.amount}
+                  className="mt-6 w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                >
+                  {payoutLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Confirmer le virement
+                </button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Filters (Gestion tab only) */}
+        {activeTab === "gestion" && <>
         {/* Filters */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
           <div className="relative flex-1 group">
@@ -317,6 +507,7 @@ export default function AdminSellersPage() {
             </>
           )}
         </div>
+        </>}
 
         {/* Details Modal */}
         <AnimatePresence>

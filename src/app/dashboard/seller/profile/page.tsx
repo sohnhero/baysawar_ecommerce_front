@@ -2,17 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  User, 
-  Store, 
-  Briefcase, 
-  FileText, 
-  MapPin, 
-  Camera, 
-  Save, 
+import {
+  User,
+  Store,
+  Briefcase,
+  FileText,
+  MapPin,
+  Camera,
+  Save,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Copy,
+  Share2,
+  Check
 } from "lucide-react";
 import { api, validateImageSize } from "@/lib/api";
 import { toast } from "react-toastify";
@@ -36,6 +39,7 @@ export default function SellerProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [artisan, setArtisan] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
   const {
     register,
@@ -111,6 +115,15 @@ export default function SellerProfilePage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCopyLink = () => {
+    if (!artisan?.slug) { toast.error("Aucun slug de boutique disponible"); return; }
+    const url = `${window.location.origin}/boutique/${artisan.slug}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   const onSubmit = async (data: ProfileForm) => {
@@ -301,6 +314,39 @@ export default function SellerProfilePage() {
                 Dernière mise à jour : {artisan?.updatedAt ? new Date(artisan.updatedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "Jamais"}
              </p>
           </div>
+
+          {artisan && (
+            <div className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
+              <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" /> Partager ma Boutique
+              </h3>
+              <div className="flex items-center gap-2 bg-slate-50 rounded-[20px] px-4 py-3 border border-slate-100">
+                <Share2 size={14} className="text-emerald-500 shrink-0" />
+                <span className="text-[10px] font-bold text-slate-500 truncate flex-1">
+                  {artisan.slug ? `/boutique/${artisan.slug}` : "Sauvegardez d'abord votre profil"}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[20px] bg-slate-100 hover:bg-slate-200 transition-colors text-[10px] font-black uppercase tracking-widest text-slate-700"
+                >
+                  {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                  {copied ? "Copié !" : "Copier"}
+                </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Découvrez ma boutique sur Baysawarr : ${typeof window !== "undefined" ? window.location.origin : ""}/boutique/${artisan.slug}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[20px] bg-[#25D366] hover:bg-[#1ebe5c] transition-colors text-[10px] font-black uppercase tracking-widest text-white"
+                >
+                  <Share2 size={14} />
+                  WhatsApp
+                </a>
+              </div>
+            </div>
+          )}
 
           <div className="p-6 bg-blue-50 rounded-[32px] border border-blue-100 flex items-start gap-4">
              <AlertCircle size={20} className="text-blue-500 shrink-0 mt-0.5" />
