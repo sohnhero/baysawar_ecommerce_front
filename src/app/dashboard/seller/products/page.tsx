@@ -55,10 +55,11 @@ export default function SellerProductsPage() {
     price: 0,
     stock: 10,
     description: "",
-    image: ""
+    image: "",
+    images: [] as string[]
   };
   const [formData, setFormData] = useState(defaultForm);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<{file: File, id: string}[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,24 +86,43 @@ export default function SellerProductsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      let imageUrl = formData.image;
+      let mainImageUrl = formData.image;
+      const galleryUrls = [...(formData.images || [])];
 
-      if (selectedFile) {
+      if (selectedFiles.length > 0) {
         toast.info(editingId ? "Mise à jour en cours..." : "Création en cours...", {
           icon: <Loader2 size={18} className="animate-spin text-emerald-500" />,
           autoClose: 2000
         });
-        const res = await api.upload<{ url: string }>("/upload", selectedFile);
-        imageUrl = res.url;
+
+        const uploadPromises = selectedFiles.map(f => api.upload<{ url: string }>("/upload", f.file));
+        const results = await Promise.all(uploadPromises);
+        const newUrls = results.map(r => r.url);
+        
+        // If no main image exists, set the first new one as main
+        if (!mainImageUrl && newUrls.length > 0) {
+          mainImageUrl = newUrls[0];
+        }
+        
+        galleryUrls.push(...newUrls);
       }
 
-      const dataToSave = { ...formData, image: imageUrl };
+      // Ensure mainImageUrl is in galleryUrls if not present
+      if (mainImageUrl && !galleryUrls.includes(mainImageUrl)) {
+        galleryUrls.unshift(mainImageUrl);
+      }
+
+      const dataToSave = { 
+        ...formData, 
+        image: mainImageUrl, 
+        images: galleryUrls 
+      };
 
       if (editingId) {
         await api.put(`/products/${editingId}`, dataToSave);
         toast.success("Produit mis à jour");
       } else {
-        if (!imageUrl) {
+        if (!mainImageUrl) {
           toast.error("Image requise");
           setLoading(false);
           return;
@@ -112,7 +132,7 @@ export default function SellerProductsPage() {
       }
       
       setShowModal(false);
-      setSelectedFile(null);
+      setSelectedFiles([]);
       fetchData();
     } catch (error: any) {
       toast.error(error.message || "Erreur d'enregistrement");
@@ -124,21 +144,27 @@ export default function SellerProductsPage() {
   const openCreateModal = () => {
     setEditingId(null);
     setFormData(defaultForm);
-    setSelectedFile(null);
+    setSelectedFiles([]);
     if (categories.length > 0) setFormData(prev => ({ ...prev, category: categories[0].slug }));
     setShowModal(true);
   };
 
   const openEditModal = (product: any) => {
     setEditingId(product.id);
-    setSelectedFile(null);
+    setSelectedFiles([]);
+    const gallery = [...(product.images || [])];
+    if (product.image && !gallery.includes(product.image)) {
+      gallery.unshift(product.image);
+    }
+    
     setFormData({
       name: product.name,
       category: typeof product.category === 'object' ? product.category.slug : product.category,
       price: product.price,
       stock: product.stock,
       description: product.description,
-      image: product.image || ""
+      image: product.image || "",
+      images: gallery
     });
     setShowModal(true);
   };
@@ -155,16 +181,19 @@ export default function SellerProductsPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        validateImageSize(file);
-        setSelectedFile(file);
-        setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
-      } catch (error: any) {
-        toast.error(error.message);
-        e.target.value = ""; // clear input
-      }
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const newFiles: {file: File, id: string}[] = [];
+      files.forEach(file => {
+        try {
+          validateImageSize(file);
+          newFiles.push({ file, id: Math.random().toString(36).substring(7) });
+        } catch (error: any) {
+          toast.error(`${file.name}: ${error.message}`);
+        }
+      });
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+      e.target.value = ""; // clear input
     }
   };
 
@@ -449,20 +478,75 @@ export default function SellerProductsPage() {
                   </div>
 
                   <div className="col-span-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-1">Image & Visuels</label>
-                    <div className="flex gap-5">
-                      <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[28px] p-8 hover:border-emerald-500 hover:bg-emerald-50/20 transition-all group relative overflow-hidden">
-                        <div className="w-12 h-12 bg-white rounded-2xl text-slate-400 flex items-center justify-center mb-3 group-hover:text-emerald-500 group-hover:scale-110 transition-all shadow-sm border border-slate-100"><Upload size={22} /></div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{selectedFile ? "Remplacer l'image" : "Uploader un visuel"}</span>
-                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-                      </button>
-                      
-                      {formData.image && (
-                        <div className="w-40 h-40 rounded-[28px] overflow-hidden border border-slate-100 relative shrink-0 shadow-lg group">
-                          <Image src={formData.image} alt="Preview" fill className="object-cover transition-transform group-hover:scale-110 duration-500" />
-                          <button type="button" onClick={() => { setFormData(prev => ({ ...prev, image: "" })); setSelectedFile(null); }} className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur shadow-md rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all"><X size={14} /></button>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-1">Images du Produit</label>
+                    
+                    <div className="space-y-4">
+                      {/* Upload Area */}
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-4 border-2 border-dashed border-slate-200 rounded-[28px] p-8 hover:border-emerald-500 hover:bg-emerald-50/20 transition-all group overflow-hidden">
+                        <div className="w-12 h-12 bg-white rounded-2xl text-slate-400 flex items-center justify-center group-hover:text-emerald-500 group-hover:scale-110 transition-all shadow-sm border border-slate-100"><Upload size={22} /></div>
+                        <div className="text-left">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 block">Uploader des visuels</span>
+                          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">Format JPG, PNG • Max 2Mo par fichier</span>
                         </div>
-                      )}
+                      </button>
+                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleFileChange} />
+
+                      {/* Gallery Grid */}
+                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                        {/* Existing Images */}
+                        {(formData.images || []).map((img, i) => (
+                          <div key={i} className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${formData.image === img ? 'border-emerald-500 shadow-lg scale-[1.02]' : 'border-slate-50 opacity-80 hover:opacity-100'}`}>
+                            <Image src={img} alt="" fill className="object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-all flex flex-col items-center justify-center gap-1">
+                               {formData.image !== img && (
+                                 <button 
+                                   type="button"
+                                   onClick={() => setFormData({...formData, image: img})}
+                                   className="p-1.5 bg-emerald-500 text-white rounded-lg text-[8px] font-black uppercase tracking-tight"
+                                 >
+                                   Principal
+                                 </button>
+                               )}
+                               <button 
+                                 type="button"
+                                 onClick={() => {
+                                   const newImages = formData.images.filter(url => url !== img);
+                                   const newMain = formData.image === img ? (newImages[0] || "") : formData.image;
+                                   setFormData({...formData, images: newImages, image: newMain});
+                                 }}
+                                 className="p-1.5 bg-rose-500 text-white rounded-lg"
+                               >
+                                 <Trash2 size={12} />
+                               </button>
+                            </div>
+                            {formData.image === img && (
+                              <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-emerald-500 text-white text-[7px] font-black uppercase tracking-tighter rounded-md shadow-sm">
+                                Principal
+                              </div>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* Newly Selected Files */}
+                        {selectedFiles.map((sf, i) => (
+                          <div key={sf.id} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-emerald-500 border-dashed bg-emerald-50/10">
+                            <Image src={URL.createObjectURL(sf.file)} alt="" fill className="object-cover opacity-60" />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <Loader2 size={16} className="text-emerald-500 animate-spin" />
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => setSelectedFiles(prev => prev.filter(f => f.id !== sf.id))}
+                              className="absolute top-1 right-1 p-1 bg-white/80 backdrop-blur-sm rounded-lg text-rose-500 shadow-sm"
+                            >
+                              <X size={12} />
+                            </button>
+                            <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-emerald-500 text-white text-[7px] font-black uppercase tracking-tighter rounded-md">
+                              Nouveau
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 

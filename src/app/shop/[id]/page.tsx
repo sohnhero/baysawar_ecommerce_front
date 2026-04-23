@@ -165,7 +165,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     ...dbProduct,
     image: dbProduct.image,
     images: (dbProduct.images && dbProduct.images.length > 0) ? dbProduct.images : [dbProduct.image],
-    rating: parseFloat(dbProduct.rating) || 5,
+    rating: dbProduct.rating !== undefined && dbProduct.rating !== null ? parseFloat(dbProduct.rating) : 0,
     reviewCount: dbProduct.reviewCount || 0,
     longDescription: dbProduct.longDescription || dbProduct.description,
     artisan: dbProduct.artisan?.name || "Fabira Trading",
@@ -343,7 +343,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             {/* Artisan */}
             <div className="flex items-center gap-2 mb-8 px-4 py-3 bg-surface rounded-xl">
               <span className="text-sm text-muted">Par</span>
-              <span className="text-sm font-semibold">{product.artisan}</span>
+              <Link 
+                href={`/boutique/${product.artisan && typeof product.artisan === 'object' ? (product.artisan as any).slug : '#'}`}
+                className="text-sm font-semibold text-brand-blue hover:underline"
+              >
+                {product.artisan && typeof product.artisan === 'object' ? (product.artisan as any).name : product.artisan}
+              </Link>
             </div>
 
             {/* Quantity + Add to cart */}

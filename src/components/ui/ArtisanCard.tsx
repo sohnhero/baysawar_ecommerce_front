@@ -41,10 +41,10 @@ export default function ArtisanCard({ artisan }: { artisan: Artisan }) {
         {artisan.bio}
       </p>
       <Link 
-        href={`/shop?seller=${artisan.id}`}
+        href={`/boutique/${artisan.slug}`}
         className="inline-block w-full py-2.5 border border-brand-green/30 text-brand-green rounded-xl text-xs font-bold hover:bg-brand-green hover:text-white transition-all"
       >
-        Voir les produits
+        Visiter la boutique
       </Link>
     </motion.div>
   );
