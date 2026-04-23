@@ -47,7 +47,7 @@ export default function SellerDashboardPage() {
 
   const handleCopyLink = () => {
     if (!artisan?.slug) { toast.error("Slug de boutique introuvable"); return; }
-    const url = `${window.location.origin}/boutique/${artisan.slug}`;
+    const url = `https://shop.fabiratrading.com/boutique/${artisan.slug}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -55,7 +55,7 @@ export default function SellerDashboardPage() {
   };
 
   const whatsappUrl = artisan?.slug
-    ? `https://wa.me/?text=${encodeURIComponent(`Découvrez ma boutique sur Baysawarr : ${typeof window !== "undefined" ? window.location.origin : ""}/boutique/${artisan.slug}`)}`
+    ? `https://wa.me/?text=${encodeURIComponent(`Découvrez ma boutique sur Baysawarr : https://shop.fabiratrading.com/boutique/${artisan.slug}`)}`
     : "#";
 
   useEffect(() => {

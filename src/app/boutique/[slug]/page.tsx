@@ -66,6 +66,10 @@ export default function BoutiquePage({ params }: { params: Promise<{ slug: strin
     );
   }
 
+  const whatsappUrl = artisan?.slug
+    ? `https://wa.me/?text=${encodeURIComponent(`Découvrez la boutique ${artisan.name} sur Baysawarr : https://shop.fabiratrading.com/boutique/${slug}`)}`
+    : "#";
+
   return (
     <div className="min-h-screen bg-white">
       {/* ─── HERO BANNER ─── */}
@@ -141,9 +145,14 @@ export default function BoutiquePage({ params }: { params: Promise<{ slug: strin
               transition={{ delay: 0.3 }}
               className="pb-2 hidden md:block"
             >
-              <button className="p-3 bg-white/10 backdrop-blur-md rounded-2xl text-white border border-white/20 hover:bg-white/20 transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest shadow-xl">
+              <a 
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 bg-white/10 backdrop-blur-md rounded-2xl text-white border border-white/20 hover:bg-white/20 transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest shadow-xl"
+              >
                  <Share2 size={16} /> Partager
-              </button>
+              </a>
             </motion.div>
           </div>
         </div>
